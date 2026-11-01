@@ -36,7 +36,7 @@ const linhaH = (y, x0, x1) => Array.from({ length: 30 }, (_, k) => [x0 + (x1 - x
 // T1 · as 15 páginas prontas aparecem com imagem
 await espera(500);
 const t1 = await avalia("({n:document.querySelectorAll('[data-pag]').length,ok:[...document.querySelectorAll('[data-pag] img')].filter(i=>i.complete&&i.naturalWidth>0).length})");
-confere('T1 · 15 páginas prontas (ensino infantil e Bíblia) com miniatura', t1.n === 15 && t1.ok === 15, JSON.stringify(t1));
+confere('T1 · 22 páginas prontas (lápis realista, ensino infantil e Bíblia) com miniatura', t1.n === 22 && t1.ok === 22, JSON.stringify(t1));
 await print('A-1-inicio.png');
 // T2 · abrir "Formas": as linhas vão para a camada de cima
 await avalia("document.querySelector('[data-pag=\"formas\"]').click()"); await espera(800);
@@ -76,6 +76,14 @@ await avalia("document.getElementById('bSalvar').click()");
 let arq = []; for (let k = 0; k < 30 && !arq.length; k++) { await espera(500); arq = readdirSync(BAIX).filter(f => /^Ester_formas_.*\.png$/.test(f)); } const gal = await avalia('atelieAPI.galeria().length');
 confere('T9 · salvar guarda na galeria e baixa o PNG', arq.length === 1 && gal === 1, JSON.stringify({ arq, gal }));
 await avalia("document.getElementById('bTerminei').click()"); await espera(400); await print('A-4-terminei.png'); await avalia("document.getElementById('bContinuar').click()");
+// T13 · desenho realista a lápis: abre com o sombreado na camada de linhas; e a foto vira lápis
+await avalia("atelieAPI.ir('tInicio')"); await espera(200);
+await avalia("document.querySelector('[data-pag=\"perola\"]').click()"); await espera(900);
+const t13a = await avalia("(()=>{const d=atelieAPI.camadas.cL.getImageData(0,0,1200,900).data;let n=0;for(let i=3;i<d.length;i+=4)if(d[i]>60)n++;return n})()");
+const t13b = await avalia(`(()=>{const c=document.createElement('canvas');c.width=800;c.height=600;const x=c.getContext('2d');x.fillStyle='#eee';x.fillRect(0,0,800,600);x.fillStyle='#333';x.beginPath();x.arc(400,300,150,0,7);x.fill();
+ const img=new Image();return new Promise(ok=>{img.onload=()=>{const d=atelieAPI.lapis(img,1200,900,20).data;let borda=0,fundo=0;for(let k=0;k<360;k+=4){const t=k*Math.PI/180,px=Math.round(600+220*Math.cos(t)),py=Math.round(450+220*Math.sin(t));if(d[(py*1200+px)*4+3]>40)borda++}for(let y=20;y<80;y++)for(let xx=200;xx<300;xx++)if(d[(y*1200+xx)*4+3]>40)fundo++;ok({borda,fundo})};img.src=c.toDataURL()})})()`);
+confere('T13 · desenho a lápis: página realista abre sombreada e a foto vira lápis (borda escura, fundo limpo)', t13a > 20000 && t13b.borda > 60 && t13b.fundo === 0, JSON.stringify({ linhas: t13a, ...t13b }));
+await print('A-7-lapis.png');
 // T12 · tabuada secreta: legenda sem ambiguidade; tudo pintado certo → Conferir dá 100%; um quadrado com a cor errada é acusado
 await avalia("atelieAPI.ir('tInicio')"); await espera(200);
 const nTab = await avalia("document.querySelectorAll('[data-tab]').length");

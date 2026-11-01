@@ -13,9 +13,12 @@
   "Para os pequenos", guardadas para a irmã mais nova) · 4 de **Tabuada secreta** (pixel art: cada quadrado
   tem uma conta sorteada a cada abertura, a legenda dá a cor de cada resultado e o botão **✔ Conferir** lê a
   pintura e marca em vermelho o que falta).
+- **Lápis realista (01/11/2026):** foto → "Desenho a lápis realista" (esquiva de cor com alisamento que preserva
+  borda; é o padrão do modal da foto) e 7 páginas prontas a lápis feitas de obras e fotos em **domínio público**
+  (procedência em `docs/PROCEDENCIA.md`). As referências do titular (obras assinadas) só inspiraram o estilo.
 - **Personagem:** o mesmo desenho SVG da Jornada (nenhuma foto da Ester é usada).
 - **Guardado só no navegador:** galeria (`atelie-ester:galeria`, até 30 miniaturas). "Salvar" também baixa o PNG.
-- **Teste antes de commitar:** `node testes/teste_atelie.mjs .scratch/prints` (12 conferências: páginas, balde,
+- **Teste antes de commitar:** `node testes/teste_atelie.mjs .scratch/prints` (13 conferências: páginas, lápis realista, balde,
   pressão, espelho, desfazer, carimbo, foto → folha, salvar, tabuada secreta, tablet deitado e em pé com toque) e
   `node testes/teste_atelie.mjs --autoteste .scratch/auto` (tem de acusar o balde vazando).
 - **Uso familiar** — não é funcionalidade do portal, salvo ordem em contrário do titular.
