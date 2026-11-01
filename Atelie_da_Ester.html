@@ -51,6 +51,7 @@ h2{margin:18px 0 10px;font-size:24px}
 .ferramentas button.on{border-color:var(--rosa);background:#ffe6f2}
 .mesa{position:relative;overflow:hidden;background:repeating-conic-gradient(#f3ece0 0 25%,#fbf6ee 0 50%) 0 0/24px 24px;display:grid;place-items:center}
 .folha{position:absolute;left:0;top:0;width:1200px;height:900px;transform-origin:0 0;box-shadow:0 10px 30px rgba(0,0,0,.18);background:#fff;touch-action:none}
+#marcas{position:absolute;inset:0;pointer-events:none}#marcas i{position:absolute;box-sizing:border-box;border:6px solid #e53935;border-radius:6px;animation:pisca .6s ease-in-out infinite alternate}@keyframes pisca{from{opacity:1}to{opacity:.25}}
 .folha canvas{position:absolute;left:0;top:0;width:1200px;height:900px}
 #cvLinhas{pointer-events:none;mix-blend-mode:multiply}
 #cvFoto{pointer-events:none}
@@ -86,8 +87,9 @@ canvas#confete{position:fixed;inset:0;pointer-events:none;z-index:60}
    <button class="comeco c4" id="bTeste"><span class="ic">🖊️</span>Teste da caneta<small>Veja a força da caneta da mesa XP-Pen</small></button>
   </div>
   <input type="file" id="arquivo" accept="image/*" hidden>
-  <h2>📚 Aprender brincando · Ensino infantil</h2><div class="paginas" id="pagInfantil"></div>
+  <h2>✖️ Tabuada secreta · faça as contas e descubra o desenho</h2><div class="paginas" id="pagTabuada"></div>
   <h2>✝️ Histórias da Bíblia</h2><div class="paginas" id="pagBiblia"></div>
+  <h2>🧸 Para os pequenos · ensino infantil</h2><div class="paginas" id="pagInfantil"></div>
   <h2>🖍️ Meus desenhos</h2><div class="galeria" id="galeria"></div>
  </main>
 </section>
@@ -101,11 +103,11 @@ canvas#confete{position:fixed;inset:0;pointer-events:none;z-index:60}
   <button class="bt" id="bDesfazer" title="Desfazer (Ctrl+Z)">↶</button><button class="bt" id="bRefazer" title="Refazer (Ctrl+Y)">↷</button>
   <button class="bt" id="bLimpar" title="Apagar a pintura (as linhas ficam)">🧽 Limpar</button>
   <button class="bt" id="bSalvar" title="Guardar na galeria e baixar o PNG (S)">💾 Salvar</button>
-  <button class="bt festa" id="bTerminei">⭐ Terminei!</button>
+  <button class="bt festa" id="bConferir" hidden>✔ Conferir</button><button class="bt festa" id="bTerminei">⭐ Terminei!</button>
  </div>
  <div class="area">
   <div class="ferramentas" id="ferramentas"></div>
-  <div class="mesa" id="mesa"><div class="folha" id="folha"><canvas id="cvFoto" width="1200" height="900"></canvas><canvas id="cvPintura" width="1200" height="900"></canvas><canvas id="cvLinhas" width="1200" height="900"></canvas></div></div>
+  <div class="mesa" id="mesa"><div class="folha" id="folha"><canvas id="cvFoto" width="1200" height="900"></canvas><canvas id="cvPintura" width="1200" height="900"></canvas><canvas id="cvLinhas" width="1200" height="900"></canvas><div id="marcas"></div></div></div>
   <div class="lado">
    <h3>Cores</h3><div class="cores" id="cores"></div>
    <label>Outra cor <input type="color" id="corLivre" value="#ff4fa3"></label>
@@ -191,6 +193,41 @@ const PAGINAS=[
   svg:svgPag(`<text x="600" y="380" text-anchor="middle" font-size="240" ${OCO}>DEUS É</text><text x="600" y="660" text-anchor="middle" font-size="260" ${OCO}>AMOR</text>${coracao(140,120,70)}${coracao(1060,120,70)}${coracao(140,700,60)}${coracao(1060,700,60)}${legenda('1 João 4:8',850)}`)},
 ];
 
+/* ===== tabuada secreta: cada quadrado tem uma conta, o resultado aponta a cor na legenda e o desenho aparece.
+   As contas são sorteadas a cada abertura (treino novo); "Conferir" lê a camada de pintura quadrado por quadrado. ===== */
+const CORT={R:['#e53935','vermelho'],p:['#ff4fa3','rosa'],o:['#ff9800','laranja'],y:['#ffcf33','amarelo'],g:['#2e9e5b','verde'],c:['#00bcd4','azul-piscina'],m:['#8d6e63','marrom'],v:['#8a4fd3','roxo'],a:['#3b6fd8','azul']};
+const TABUADA=[
+ {id:'tab-coracao',titulo:'Tabuada secreta: o coração',arte:['............','.RRR....RRR.','RRpRR..RRRRR','RpRRRRRRRRRR','RRRRRRRRRRRR','.RRRRRRRRRR.','..RRRRRRRR..','...RRRRRR...','....RRRR....','.....RR.....']},
+ {id:'tab-borboleta',titulo:'Tabuada secreta: a borboleta',arte:['............','.vvv.aa.vvv.','vvppvaavppvv','vpppvaavpppv','vvppvaavppvv','.vvvvaavvvv.','..vppaappv..','..vppaappv..','...vvaavv...','............']},
+ {id:'tab-peixe',titulo:'Tabuada secreta: o peixe',arte:['............','.....yyy....','o...oooooo..','oo.ooooovoo.','oooooooooooo','oo.oooooooo.','o...oooooo..','.....yyy....','............','g..g...g..g.']},
+ {id:'tab-casa',titulo:'Tabuada secreta: a casa',arte:['oo..........','oo...RR.....','....RRRR....','...RRRRRR...','..RRRRRRRR..','..yyyyyyyy..','..yccyyccy..','..yyymmyyy..','..yyymmyyy..','gggggggggggg']},
+];
+const TX=30,TY=150,TC=70;
+function montarTabuada(t){const letras=[...new Set(t.arte.join('').replace(/\./g,''))],contas=[];for(let a=2;a<=9;a++)for(let b=2;b<=9;b++)contas.push([a,b]);
+ const res=[...new Set(contas.map(([a,b])=>a*b))].sort(()=>Math.random()-.5),porCor={};letras.forEach(l=>porCor[l]=[]);
+ /* cada resultado pertence a UMA cor só, senão a legenda seria ambígua */
+ res.forEach((r,i)=>{const l=letras[i%letras.length];if(porCor[l].length<3)porCor[l].push(r)});
+ letras.forEach(l=>porCor[l].sort((a,b)=>a-b));const cel=[];
+ t.arte.forEach((linha,y)=>[...linha].forEach((l,x)=>{if(l==='.')return;const r=pick(porCor[l]),op=contas.filter(([a,b])=>a*b===r),[a,b]=pick(op);cel.push({x,y,l,a,b})}));
+ return {cel,porCor,letras}}
+function tabSVG(t,m){const q=c=>`x="${TX+c.x*TC}" y="${TY+c.y*TC}" width="${TC}" height="${TC}"`;let s=`<text x="30" y="62" font-size="38" font-weight="900" fill="#222">${t.titulo}</text><text x="30" y="108" font-size="21" fill="#444">Faça a conta de cada quadrado, ache o resultado na legenda e pinte o quadrado com aquela cor.</text>`;
+ for(const c of m.cel)s+=`<rect ${q(c)} fill="none" stroke="#333" stroke-width="3"/><text x="${TX+c.x*TC+TC/2}" y="${TY+c.y*TC+TC/2+8}" text-anchor="middle" font-size="22" font-weight="800" fill="#333">${c.a}×${c.b}</text>`;
+ s+=`<text x="900" y="180" font-size="26" font-weight="900" fill="#222">Legenda</text>`;
+ m.letras.forEach((l,i)=>{const y=200+i*85;s+=`<rect x="900" y="${y}" width="60" height="60" rx="10" fill="${CORT[l][0]}" stroke="#333" stroke-width="3"/><text x="975" y="${y+22}" font-size="19" fill="#444">${CORT[l][1]}</text><text x="975" y="${y+54}" font-size="28" font-weight="900" fill="#222">${m.porCor[l].join(' · ')}</text>`});
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" font-family="Nunito,Segoe UI,Arial,sans-serif">${s}</svg>`}
+function tabMini(t){let s='';t.arte.forEach((linha,y)=>[...linha].forEach((l,x)=>{if(l!=='.')s+=`<rect x="${TX+x*TC}" y="${TY+y*TC}" width="${TC}" height="${TC}" fill="${CORT[l][0]}" stroke="#fff" stroke-width="2"/>`}));
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900"><rect width="1200" height="900" fill="#fff"/>${s}<text x="1000" y="470" font-size="150" text-anchor="middle" fill="#333" font-weight="900">×</text></svg>`)}
+async function abrirTabuada(t){const m=montarTabuada(t);limparTudo();abrirAtelie({id:t.id,titulo:t.titulo,missao:'Faça cada conta, ache o resultado na legenda e pinte com o balde 🪣. Depois toque em ✔ Conferir!',cel:m.cel});escolher('balde');await desenharSVG(tabSVG(t,m))}
+function conferir(){const d=cP.getImageData(0,0,W,H).data,erros=[];
+ const perto=(i,hx)=>{const n=parseInt(hx.slice(1),16);return d[i+3]>100&&Math.abs(d[i]-(n>>16))+Math.abs(d[i+1]-(n>>8&255))+Math.abs(d[i+2]-(n&255))<90};
+ /* 4 cantos de dentro do quadrado (o meio tem a conta escrita); vale com 3 de 4 certos */
+ for(const c of atual.cel){const x0=TX+c.x*TC,y0=TY+c.y*TC;let ok=0;for(const [dx,dy] of [[12,12],[TC-12,12],[12,TC-12],[TC-12,TC-12]])if(perto(((y0+dy)*W+x0+dx)*4,CORT[c.l][0]))ok++;if(ok<3)erros.push(c)}
+ const mc=$('marcas');mc.innerHTML=erros.map(c=>`<i style="left:${TX+c.x*TC}px;top:${TY+c.y*TC}px;width:${TC}px;height:${TC}px"></i>`).join('');clearTimeout(conferir.t);conferir.t=setTimeout(()=>mc.innerHTML='',5000);
+ const n=atual.cel.length,cert=n-erros.length;
+ if(!erros.length){$('missaoTxt').textContent=`✔ ${n} de ${n}: todas as contas certas! O desenho secreto apareceu.`;$('bTerminei').click()}
+ else $('missaoTxt').textContent=`✔ ${cert} de ${n} certos. Os quadrados piscando em vermelho ainda faltam ou estão com outra cor: refaça a conta!`;
+ return {certos:cert,total:n}}
+
 /* ===== estado e armazenamento (tudo no navegador) ===== */
 const CHAVE_GAL='atelie-ester:galeria';
 let galeria=[];try{galeria=JSON.parse(localStorage.getItem(CHAVE_GAL)||'[]')}catch(e){}
@@ -200,8 +237,10 @@ function salvarGaleria(){try{localStorage.setItem(CHAVE_GAL,JSON.stringify(galer
 function miniatura(p){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(p.svg)}
 function inicio(){avatar($('avaInicio'),'feliz');
  for(const [cat,el] of [['infantil','pagInfantil'],['biblia','pagBiblia']])$(el).innerHTML=PAGINAS.filter(p=>p.cat===cat).map(p=>`<button class="pagina" data-pag="${p.id}"><img alt="" src="${miniatura(p)}">${p.titulo}<small>${p.missao.split(/[.!]/)[0]}</small></button>`).join('');
+ $('pagTabuada').innerHTML=TABUADA.map(t=>`<button class="pagina" data-tab="${t.id}"><img alt="" src="${tabMini(t)}">${t.titulo.replace('Tabuada secreta: ','')}<small>Contas da tabuada 2 a 9</small></button>`).join('');
  $('galeria').innerHTML=galeria.length?galeria.slice().reverse().map(g=>`<figure><img alt="${g.titulo}" src="${g.img}"><figcaption>${g.titulo}<br>${g.data}</figcaption><button data-apagar="${g.id}">apagar</button></figure>`).join(''):'<p style="color:var(--suave)">Os desenhos salvos aparecem aqui.</p>'}
 document.addEventListener('click',e=>{const p=e.target.closest('[data-pag]');if(p)abrirPagina(PAGINAS.find(x=>x.id===p.dataset.pag));
+ const tb=e.target.closest('[data-tab]');if(tb)abrirTabuada(TABUADA.find(x=>x.id===tb.dataset.tab));
  const a=e.target.closest('[data-apagar]');if(a&&confirm('Apagar este desenho da galeria?')){galeria=galeria.filter(g=>g.id!==a.dataset.apagar);salvarGaleria();inicio()}});
 
 /* ===== ateliê: camadas ===== */
@@ -214,12 +253,12 @@ function ajustar(){const m=$('mesa'),f=$('folha');const s=Math.min((m.clientWidt
  /* reduz a partir do canto e centraliza pela conta: reduzir pelo centro de uma folha maior que a área a deixava torta */
  f.style.transform=`translate(${(m.clientWidth-W*s)/2}px,${(m.clientHeight-H*s)/2}px) scale(${s})`;escala=s}
 let escala=1;addEventListener('resize',()=>{if($('tAtelie').classList.contains('on'))ajustar()});
-function limparTudo(){cP.clearRect(0,0,W,H);cL.clearRect(0,0,W,H);cF.clearRect(0,0,W,H);historico=[];refazer=[];$('lblFoto').hidden=true;cvF.style.opacity=1}
-function abrirAtelie(info){atual=info;ir('tAtelie');$('titulo').textContent=info.titulo;$('missaoTxt').textContent=info.missao;avatar($('avaMissao'),'feliz');guardarPasso()}
+function limparTudo(){cP.clearRect(0,0,W,H);cL.clearRect(0,0,W,H);cF.clearRect(0,0,W,H);historico=[];refazer=[];$('lblFoto').hidden=true;cvF.style.opacity=1;$('marcas').innerHTML=''}
+function abrirAtelie(info){atual=info;$('bConferir').hidden=!info.cel;ir('tAtelie');$('titulo').textContent=info.titulo;$('missaoTxt').textContent=info.missao;avatar($('avaMissao'),'feliz');guardarPasso()}
 function desenharSVG(svg){return new Promise(ok=>{const img=new Image();img.onload=()=>{cL.drawImage(img,0,0,W,H);ok()};img.onerror=()=>ok();img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)})}
 async function abrirPagina(p){limparTudo();abrirAtelie(p);await desenharSVG(p.svg)}
 $('bBranca').onclick=()=>{limparTudo();abrirAtelie({id:'branca',titulo:'Tela em branco',missao:'Desenhe o que quiser! Experimente o espelho 🦋, o arco-íris 🌈 e os carimbos.'})};
-$('bVoltar').onclick=()=>ir('tInicio');
+$('bVoltar').onclick=()=>ir('tInicio');$('bConferir').onclick=()=>conferir();
 
 /* ===== ferramentas ===== */
 const FERR=[['pincel','🖌️','Pincel'],['lapis','✏️','Lápis'],['giz','🖍️','Giz de cera'],['caneta','🖊️','Canetinha'],['spray','💨','Spray'],['arco','🌈','Arco-íris'],['purpurina','✨','Purpurina'],['balde','🪣','Balde'],['carimbo','⭐','Carimbo'],['borracha','🧽','Borracha']];
@@ -295,20 +334,38 @@ let modoFoto='folha',fotoImg=null;
 $('bFotoFolha').onclick=()=>{modoFoto='folha';$('arquivo').click()};$('bFotoCima').onclick=()=>{modoFoto='cima';$('arquivo').click()};
 $('arquivo').onchange=e=>{const f=e.target.files[0];if(!f)return;const img=new Image();img.onload=()=>{fotoImg=img;URL.revokeObjectURL(img.src);if(modoFoto==='folha'){$('mFoto').classList.add('on');previa()}else usarFotoDeFundo()};img.src=URL.createObjectURL(f);e.target.value=''};
 function encaixar(ctx,img,w,h){ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);const s=Math.min(w/img.width,h/img.height),iw=img.width*s,ih=img.height*s;ctx.drawImage(img,(w-iw)/2,(h-ih)/2,iw,ih)}
-function contornos(img,w,h,detalhe){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});encaixar(x,img,w,h);
- const src=x.getImageData(0,0,w,h).data,g=new Float32Array(w*h);for(let i=0;i<w*h;i++)g[i]=.299*src[i*4]+.587*src[i*4+1]+.114*src[i*4+2];
- const suave=new Float32Array(w*h);for(let y=1;y<h-1;y++)for(let xx=1;xx<w-1;xx++){let s=0;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)s+=g[(y+a)*w+xx+b];suave[y*w+xx]=s/9}
- const mag=new Float32Array(w*h);let max=1;for(let y=1;y<h-1;y++)for(let xx=1;xx<w-1;xx++){const i=y*w+xx,gx=-suave[i-w-1]-2*suave[i-1]-suave[i+w-1]+suave[i-w+1]+2*suave[i+1]+suave[i+w+1],gy=-suave[i-w-1]-2*suave[i-w]-suave[i-w+1]+suave[i+w-1]+2*suave[i+w]+suave[i+w+1];mag[i]=Math.hypot(gx,gy);if(mag[i]>max)max=mag[i]}
- /* a moldura da imagem (2 px) não é contorno do desenho */
- for(let y=0;y<h;y++)for(let xx=0;xx<w;xx++)if(y<2||xx<2||y>=h-2||xx>=w-2)mag[y*w+xx]=0;
- /* corte pela proporção de pixels que viram linha (Detalhe 2 → ~1%, 40 → ~12%), não pelo máximo: foto real tem contraste muito variado */
- const BINS=1024,hist=new Uint32Array(BINS);let mx=1;for(let i=0;i<w*h;i++)if(mag[i]>mx)mx=mag[i];for(let i=0;i<w*h;i++)hist[Math.min(BINS-1,Math.floor(mag[i]/mx*(BINS-1)))]++;
- const alvo=w*h*(0.01+(detalhe/40)*0.11);let acum=0,bin=BINS-1;for(;bin>0;bin--){acum+=hist[bin];if(acum>=alvo)break}
- const corte=Math.max(mx*bin/(BINS-1),24),out=x.createImageData(w,h);
- for(let i=0;i<w*h;i++){if(mag[i]>corte){/* linha 2 px: o ponto e o vizinho de baixo/direita */for(const q of [i,i+1,i+w]){if(q<w*h){out.data[q*4+3]=255}}}}
- return out}
+/* desfoque gaussiano aproximado: 3 passadas de caixa, separável (rápido mesmo na folha inteira) */
+function desfocar(src,w,h,r){let a=Float32Array.from(src);const b=new Float32Array(w*h),n=2*r+1;
+ for(let k=0;k<3;k++){
+  for(let y=0;y<h;y++){const o=y*w;let s=0;for(let x=-r;x<=r;x++)s+=a[o+Math.min(w-1,Math.max(0,x))];for(let x=0;x<w;x++){b[o+x]=s/n;s+=a[o+Math.min(w-1,x+r+1)]-a[o+Math.max(0,x-r)]}}
+  for(let x=0;x<w;x++){let s=0;for(let y=-r;y<=r;y++)s+=b[Math.min(h-1,Math.max(0,y))*w+x];for(let y=0;y<h;y++){a[y*w+x]=s/n;s+=b[Math.min(h-1,y+r+1)*w+x]-b[Math.max(0,y-r)*w+x]}}}
+ return a}
+/* foto → contorno de livro de colorir: diferença de gaussianas (só o lado escuro da borda, então a linha é UMA, não
+   duas como no Sobel), corte pela proporção de pixels, sujeira pequena apagada e borda da linha suavizada.
+   Calcula sempre na folha inteira (1200×900) e reduz para a prévia, para a prévia ser igual ao resultado. */
+function contornos(img,w,h,detalhe){const FW=1200,FH=900,c=document.createElement('canvas');c.width=FW;c.height=FH;const x=c.getContext('2d',{willReadFrequently:true});encaixar(x,img,FW,FH);
+ const src=x.getImageData(0,0,FW,FH).data,N=FW*FH,g=new Float32Array(N);for(let i=0;i<N;i++)g[i]=(.299*src[i*4]+.587*src[i*4+1]+.114*src[i*4+2])/255;
+ /* alisa a textura (grama, pelo, granulado) sem borrar as bordas: média só dos vizinhos de tom parecido, 2 vezes */
+ for(let k=0;k<2;k++){const s=Float32Array.from(g);for(let y=2;y<FH-2;y++)for(let xx=2;xx<FW-2;xx++){const i=y*FW+xx,v=s[i];let a=0,n=0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const u=s[i+dy*FW+dx];if(Math.abs(u-v)<.1){a+=u;n++}}g[i]=a/n}}
+ const t=Math.min(1,Math.max(0,(detalhe-2)/38)),r1=Math.round(3-1.6*t),r2=Math.max(r1+1,Math.round(r1*1.8));
+ const g1=desfocar(g,FW,FH,r1),g2=desfocar(g,FW,FH,r2),d=new Float32Array(N);
+ for(let y=0;y<FH;y++)for(let xx=0;xx<FW;xx++){const i=y*FW+xx;/* a moldura (4 px) não é contorno */d[i]=(y<4||xx<4||y>=FH-4||xx>=FW-4)?0:Math.max(0,g2[i]-g1[i])}
+ /* corte pela proporção de pixels que viram linha (Detalhe 2 → ~2,5%, 40 → ~10%); piso para foto lisa não virar ruído */
+ const BINS=2048,hist=new Uint32Array(BINS);let mx=1e-6;for(let i=0;i<N;i++)if(d[i]>mx)mx=d[i];for(let i=0;i<N;i++)hist[Math.min(BINS-1,Math.floor(d[i]/mx*(BINS-1)))]++;
+ const alvo=N*(0.025+0.075*t);let acum=0,bin=BINS-1;for(;bin>0;bin--){acum+=hist[bin];if(acum>=alvo)break}
+ const corte=Math.max(mx*bin/(BINS-1),0.012),m=new Uint8Array(N);for(let i=0;i<N;i++)if(d[i]>corte)m[i]=1;
+ /* apaga os pedacinhos soltos (textura, granulado): componente com menos pixels que o mínimo some */
+ const minimo=Math.round(260-200*t),vis=new Uint8Array(N),pilha=new Int32Array(N),comp=new Int32Array(N);
+ for(let s=0;s<N;s++){if(!m[s]||vis[s])continue;let topo=0,nc=0;pilha[topo++]=s;vis[s]=1;
+  while(topo){const p=pilha[--topo];comp[nc++]=p;const px=p%FW;for(let dy=-FW;dy<=FW;dy+=FW)for(let dx=-1;dx<=1;dx++){const q=p+dy+dx;if(q<0||q>=N||vis[q]||!m[q]||Math.abs((q%FW)-px)>1)continue;vis[q]=1;pilha[topo++]=q}}
+  if(nc<minimo)for(let k=0;k<nc;k++)m[comp[k]]=0}
+ /* engrossa 1 px e suaviza a borda: linha de nanquim, sem serrilhado */
+ const gross=new Float32Array(N);for(let i=0;i<N;i++)if(m[i]){gross[i]=1;if(i+1<N)gross[i+1]=1;if(i+FW<N)gross[i+FW]=1}
+ const liso=desfocar(gross,FW,FH,1),out=x.createImageData(FW,FH);for(let i=0;i<N;i++){const a=Math.min(1,liso[i]*1.7);out.data[i*4+3]=a<.12?0:Math.round(a*255)}
+ if(w===FW&&h===FH)return out;
+ x.clearRect(0,0,FW,FH);x.putImageData(out,0,0);const c2=document.createElement('canvas');c2.width=w;c2.height=h;const x2=c2.getContext('2d');x2.drawImage(c,0,0,w,h);return x2.getImageData(0,0,w,h)}
 function previa(){const pv=$('cvPrevia'),x=pv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,pv.width,pv.height);const id=contornos(fotoImg,pv.width,pv.height,+$('detalhe').value);const t=document.createElement('canvas');t.width=pv.width;t.height=pv.height;t.getContext('2d').putImageData(id,0,0);x.drawImage(t,0,0)}
-$('detalhe').oninput=()=>previa();$('bFotoCancelar').onclick=()=>$('mFoto').classList.remove('on');
+/* recalcula ao soltar o controle: a folha inteira leva meio segundo */$('detalhe').onchange=()=>previa();$('bFotoCancelar').onclick=()=>$('mFoto').classList.remove('on');
 $('bFotoUsar').onclick=()=>{$('mFoto').classList.remove('on');limparTudo();abrirAtelie({id:'foto-folha',titulo:'Minha foto para colorir',missao:'Use o balde 🪣 para pintar as partes grandes e o pincel para os detalhes!'});cL.putImageData(contornos(fotoImg,W,H,+$('detalhe').value),0,0)};
 function usarFotoDeFundo(){limparTudo();abrirAtelie({id:'foto-cima',titulo:'Desenhando na foto',missao:'Desenhe por cima da foto! Mexa em "Foto de fundo" para deixá-la mais clarinha.'});encaixar(cF,fotoImg,W,H);$('lblFoto').hidden=false;cvF.style.opacity=$('fotoOpa').value/100}
 
@@ -321,7 +378,7 @@ function salvar(baixar=true){const c=composicao(),dh=dataHora();const m=document
  if(baixar){const a=document.createElement('a');a.download=`Ester_${atual.id}_${dh.arq}.png`;a.href=c.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove()}}
 $('bSalvar').onclick=()=>{salvar(true);avatar($('avaMissao'),'festa');$('missaoTxt').textContent='Guardei na galeria e baixei o desenho! 💾'};
 $('bTerminei').onclick=()=>{salvar(false);avatar($('avaFim'),'festa');$('fimTitulo').textContent=pick(['Que lindo!','Ficou incrível!','Você é uma artista!','Parabéns!']);
- $('fimTexto').textContent=atual.cat==='biblia'?'Que bonito aprender a história da Bíblia pintando! Conte para alguém o que você aprendeu.':atual.cat==='infantil'?'Você aprendeu brincando! Seu desenho foi para a galeria.':'Seu desenho foi para a galeria!';$('mFim').classList.add('on');confete()};
+ $('fimTexto').textContent=atual.cel?'Você descobriu o desenho secreto e treinou a tabuada! Seu desenho foi para a galeria.':atual.cat==='biblia'?'Que bonito aprender a história da Bíblia pintando! Conte para alguém o que você aprendeu.':atual.cat==='infantil'?'Você aprendeu brincando! Seu desenho foi para a galeria.':'Seu desenho foi para a galeria!';$('mFim').classList.add('on');confete()};
 $('bContinuar').onclick=()=>$('mFim').classList.remove('on');$('bFimInicio').onclick=()=>{$('mFim').classList.remove('on');ir('tInicio')};
 function confete(){const c=$('confete'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;const ps=[...Array(120)].map(()=>({x:innerWidth/2,y:innerHeight/3,vx:(Math.random()-.5)*14,vy:Math.random()*-12-4,c:pick(CORES.slice(2)),s:4+Math.random()*6}));let t=0;(function f(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.35;x.fillStyle=p.c;x.fillRect(p.x,p.y,p.s,p.s*1.5)});if(++t<100)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height)})()}
 
@@ -341,7 +398,7 @@ addEventListener('keydown',e=>{if(!$('tAtelie').classList.contains('on')||e.targ
  else if(e.ctrlKey||e.metaKey||e.altKey)return;else if(k==='b')escolher('pincel');else if(k==='e')escolher('borracha');else if(k==='g')escolher('balde');else if(k==='s')$('bSalvar').click();
  else if(k===']')$('tam').value=+$('tam').value+4;else if(k==='[')$('tam').value=+$('tam').value-4});
 
-window.atelieAPI={PAGINAS,abrirPagina,balde,carimbar:(x,y)=>carimbar({x,y}),escolher,setCor:c=>{cor=c},galeria:()=>galeria,contornos,camadas:{cP,cL,cF},usarFotoTeste:img=>{fotoImg=img},ir};
+window.atelieAPI={PAGINAS,abrirPagina,TABUADA,abrirTabuada,conferir,CORT,TX,TY,TC,atual:()=>atual,balde,carimbar:(x,y)=>carimbar({x,y}),escolher,setCor:c=>{cor=c},galeria:()=>galeria,contornos,camadas:{cP,cL,cF},usarFotoTeste:img=>{fotoImg=img},ir};
 inicio();
 })();
 </script>

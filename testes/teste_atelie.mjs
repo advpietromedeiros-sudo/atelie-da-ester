@@ -76,6 +76,16 @@ await avalia("document.getElementById('bSalvar').click()");
 let arq = []; for (let k = 0; k < 30 && !arq.length; k++) { await espera(500); arq = readdirSync(BAIX).filter(f => /^Ester_formas_.*\.png$/.test(f)); } const gal = await avalia('atelieAPI.galeria().length');
 confere('T9 · salvar guarda na galeria e baixa o PNG', arq.length === 1 && gal === 1, JSON.stringify({ arq, gal }));
 await avalia("document.getElementById('bTerminei').click()"); await espera(400); await print('A-4-terminei.png'); await avalia("document.getElementById('bContinuar').click()");
+// T12 · tabuada secreta: legenda sem ambiguidade; tudo pintado certo → Conferir dá 100%; um quadrado com a cor errada é acusado
+await avalia("atelieAPI.ir('tInicio')"); await espera(200);
+const nTab = await avalia("document.querySelectorAll('[data-tab]').length");
+await avalia("document.querySelector('[data-tab=\"tab-casa\"]').click()"); await espera(900);
+const t12 = await avalia(`(()=>{const A=atelieAPI,cel=A.atual().cel,cor={};let ambigua=0;for(const c of cel){const r=c.a*c.b;if(cor[r]&&cor[r]!==c.l)ambigua++;cor[r]=c.l}
+ const vazio=A.conferir().certos;for(const c of cel){A.setCor(A.CORT[c.l][0]);A.balde(A.TX+c.x*A.TC+12,A.TY+c.y*A.TC+12)}const tudo=A.conferir();
+ document.getElementById('bContinuar').click();const c0=cel.find(c=>c.l==='R');A.setCor('#2e9e5b');A.balde(A.TX+c0.x*A.TC+12,A.TY+c0.y*A.TC+12);const um=A.conferir();
+ return {total:cel.length,ambigua,vazio,tudo:tudo.certos,umErrado:um.certos,marcas:document.querySelectorAll('#marcas i').length}})()`);
+confere('T12 · tabuada secreta: 4 desenhos; Conferir acerta o tudo-certo e acusa o quadrado errado', nTab === 4 && t12.ambigua === 0 && t12.vazio === 0 && t12.tudo === t12.total && t12.umErrado === t12.total - 1 && t12.marcas === 1, JSON.stringify({ nTab, ...t12 }));
+await print('A-6-tabuada.png');
 // T10 · tablet deitado e em pé, com toque: a folha cabe na tela e o dedo desenha
 const tablets = { deitado: [1180, 820], 'em pé': [820, 1180] }; const t10 = {};
 for (const [nome, [w, h]] of Object.entries(tablets)) {

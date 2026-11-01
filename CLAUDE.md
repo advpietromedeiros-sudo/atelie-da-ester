@@ -7,12 +7,15 @@
   instalação), para a mesa XP-Pen Deco 01 V3 e para tablet (dedo e caneta). Pedido do titular, 01/11/2026.
 - **Folha 1200×900 com 3 camadas:** foto de fundo (opcional) · PINTURA · LINHAS (em cima, multiplicar). O balde de
   tinta para nas linhas. Pressão pelos Pointer Events: no Windows, ligar o **Windows Ink** no driver XP-Pen.
-- **Começos:** tela em branco · foto → folha de colorir (contornos por Sobel, corte pela proporção de pixels) ·
-  desenhar por cima da foto · teste da caneta · 15 páginas prontas (8 de ensino infantil, 7 da Bíblia, com
-  missão; o texto bíblico é resumo com a referência, as citações literais são curtas).
+- **Começos:** tela em branco · foto → folha de colorir (diferença de gaussianas com alisamento que preserva
+  borda, corte pela proporção de pixels e remoção de pedacinhos soltos; calcula sempre em 1200×900) · desenhar
+  por cima da foto · teste da caneta · 15 páginas prontas (7 da Bíblia; 8 de ensino infantil, agora na seção
+  "Para os pequenos", guardadas para a irmã mais nova) · 4 de **Tabuada secreta** (pixel art: cada quadrado
+  tem uma conta sorteada a cada abertura, a legenda dá a cor de cada resultado e o botão **✔ Conferir** lê a
+  pintura e marca em vermelho o que falta).
 - **Personagem:** o mesmo desenho SVG da Jornada (nenhuma foto da Ester é usada).
 - **Guardado só no navegador:** galeria (`atelie-ester:galeria`, até 30 miniaturas). "Salvar" também baixa o PNG.
-- **Teste antes de commitar:** `node testes/teste_atelie.mjs .scratch/prints` (11 conferências: páginas, balde,
-  pressão, espelho, desfazer, carimbo, foto → folha, salvar, tablet deitado e em pé com toque) e
+- **Teste antes de commitar:** `node testes/teste_atelie.mjs .scratch/prints` (12 conferências: páginas, balde,
+  pressão, espelho, desfazer, carimbo, foto → folha, salvar, tabuada secreta, tablet deitado e em pé com toque) e
   `node testes/teste_atelie.mjs --autoteste .scratch/auto` (tem de acusar o balde vazando).
 - **Uso familiar** — não é funcionalidade do portal, salvo ordem em contrário do titular.
