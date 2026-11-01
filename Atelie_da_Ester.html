@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ateliê da Ester</title>
+<!-- Aplicativo de desenho e pintura para a Ester (mesa XP-Pen Deco 01 V3).
+     Folha 1200×900 com duas camadas: PINTURA (embaixo) e LINHAS (em cima, as linhas do desenho pronto ou da foto).
+     O balde de tinta para nas linhas. Pressão da caneta pelos Pointer Events (ligar o Windows Ink no driver).
+     Tudo local: nada vai para a internet; os desenhos ficam no navegador e podem ser salvos em PNG. -->
+<style>
+:root{--bg:#fff7ec;--papel:#fff;--tinta:#2b2340;--suave:#7a6f8a;--linha:#eadfce;--rosa:#ff4fa3;--roxo:#8a4fd3;--azul:#3b6fd8;--verde:#2e9e5b;--amarelo:#ffcf33;--raio:18px}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tinta);font:17px/1.4 "Segoe UI Rounded","Segoe UI",system-ui,Arial,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--amarelo);outline-offset:2px}
+.tela{display:none}.tela.on{display:block}
+/* início */
+header.topo{display:flex;align-items:center;gap:14px;padding:12px 20px;background:#fff;border-bottom:3px solid var(--linha)}
+header.topo h1{margin:0;font-size:28px}header.topo h1 span{color:var(--rosa)}
+.ava{width:110px;height:124px;flex:none}
+.fala{background:#fff;border:2px solid var(--linha);border-radius:16px;padding:10px 14px;font-weight:700;max-width:560px}
+main.inicio{max-width:1200px;margin:0 auto;padding:18px 16px 40px}
+.comecos{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-bottom:20px}
+.comeco{border:0;border-radius:var(--raio);padding:18px;text-align:left;color:#fff;font-weight:800;font-size:20px;box-shadow:0 8px 20px rgba(0,0,0,.12)}
+.comeco small{display:block;font-weight:600;font-size:14px;opacity:.95;margin-top:4px}
+.comeco .ic{font-size:36px;display:block;margin-bottom:6px}
+.c1{background:linear-gradient(135deg,#3b6fd8,#6aa0ff)}.c2{background:linear-gradient(135deg,#ff4fa3,#ff9ccc)}.c3{background:linear-gradient(135deg,#2e9e5b,#5fd38f)}.c4{background:linear-gradient(135deg,#8a4fd3,#b98cff)}
+h2{margin:18px 0 10px;font-size:24px}
+.paginas{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.pagina{background:#fff;border:2px solid var(--linha);border-radius:16px;padding:8px;text-align:center;font-weight:800}
+.pagina img{width:100%;aspect-ratio:4/3;object-fit:contain;background:#fff;border-radius:10px}
+.pagina small{display:block;color:var(--suave);font-weight:700;font-size:13px}
+.galeria{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.galeria figure{margin:0;background:#fff;border:2px solid var(--linha);border-radius:14px;padding:6px;text-align:center;font-size:13px;font-weight:700}
+.galeria img{width:100%;border-radius:8px}
+.galeria button{border:0;background:none;color:var(--suave);font-size:12px}
+/* ateliê */
+#tAtelie.on{display:flex;flex-direction:column;height:100vh;height:100dvh}
+.barraTopo{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border-bottom:2px solid var(--linha);flex-wrap:wrap}
+.barraTopo .titulo{font-weight:900;font-size:19px}
+.missao{flex:1;min-width:240px;display:flex;align-items:center;gap:8px;background:#fff3c4;border:2px solid var(--amarelo);border-radius:14px;padding:4px 10px;font-weight:700;font-size:15px}
+.missao .ava{width:46px;height:52px}
+.bt{border:2px solid var(--linha);background:#fff;border-radius:12px;padding:8px 12px;font-weight:800}
+.bt.on{background:var(--roxo);border-color:var(--roxo);color:#fff}
+.bt.festa{background:var(--verde);border-color:var(--verde);color:#fff}
+.area{display:grid;grid-template-columns:92px minmax(0,1fr) 230px;flex:1;min-height:0}
+.ferramentas{background:#fff;border-right:2px solid var(--linha);padding:8px;display:flex;flex-direction:column;gap:6px;overflow-y:auto}
+.ferramentas button{border:2px solid var(--linha);background:#fff;border-radius:14px;padding:6px 2px;font-size:12px;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:2px}
+.ferramentas button .ic{font-size:26px;line-height:1}
+.ferramentas button.on{border-color:var(--rosa);background:#ffe6f2}
+.mesa{position:relative;overflow:hidden;background:repeating-conic-gradient(#f3ece0 0 25%,#fbf6ee 0 50%) 0 0/24px 24px;display:grid;place-items:center}
+.folha{position:absolute;left:0;top:0;width:1200px;height:900px;transform-origin:0 0;box-shadow:0 10px 30px rgba(0,0,0,.18);background:#fff;touch-action:none}
+.folha canvas{position:absolute;left:0;top:0;width:1200px;height:900px}
+#cvLinhas{pointer-events:none;mix-blend-mode:multiply}
+#cvFoto{pointer-events:none}
+.lado{background:#fff;border-left:2px solid var(--linha);padding:10px;overflow-y:auto}
+.lado h3{margin:8px 0 6px;font-size:14px;letter-spacing:.08em;color:var(--suave);text-transform:uppercase}
+.cores{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.cores button{aspect-ratio:1;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #d9cfc0}
+.cores button.on{box-shadow:0 0 0 3px var(--tinta);transform:scale(1.08)}
+.lado input[type=range]{width:100%}
+.lado label{display:block;font-weight:700;font-size:14px;margin-top:6px}
+.carimbos{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.carimbos button{font-size:24px;border:2px solid var(--linha);background:#fff;border-radius:10px;padding:2px}
+.carimbos button.on{border-color:var(--rosa);background:#ffe6f2}
+.pressao{height:12px;border-radius:6px;background:#eee;overflow:hidden}.pressao i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--azul),var(--rosa))}
+.modal{position:fixed;inset:0;background:rgba(30,20,50,.45);display:none;place-items:center;z-index:50;padding:16px}.modal.on{display:grid}
+.caixa{background:#fff;border-radius:22px;padding:22px;max-width:560px;width:100%;text-align:center}
+.caixa .grande{font-size:46px;letter-spacing:6px}
+.foto-opcoes{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+canvas#confete{position:fixed;inset:0;pointer-events:none;z-index:60}
+/* tablet em pé / telas estreitas: o painel de cores vai para baixo da folha (nunca por cima dela) */
+@media(max-width:900px){.area{grid-template-columns:76px minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}.lado{grid-column:1/-1;border-left:0;border-top:2px solid var(--linha);max-height:30vh;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 14px;align-content:start}.missao{font-size:13px}.barraTopo .bt{padding:6px 9px}}
+</style>
+</head>
+<body>
+<!-- ================= INÍCIO ================= -->
+<section class="tela on" id="tInicio">
+ <header class="topo"><svg class="ava" id="avaInicio" viewBox="0 0 200 226" aria-label="Ester"></svg><div><h1>Ateliê da <span>Ester</span></h1><div class="fala" id="falaInicio">Oi! Vamos desenhar? Escolha uma página para pintar ou comece do jeito que quiser!</div></div></header>
+ <main class="inicio">
+  <div class="comecos">
+   <button class="comeco c1" id="bBranca"><span class="ic">🖼️</span>Tela em branco<small>Desenhe o que quiser com todas as ferramentas</small></button>
+   <button class="comeco c2" id="bFotoFolha"><span class="ic">📷</span>Foto → folha de colorir<small>Escolha uma foto e ela vira contorno para pintar</small></button>
+   <button class="comeco c3" id="bFotoCima"><span class="ic">✏️</span>Desenhar por cima da foto<small>A foto fica de fundo e você desenha em cima</small></button>
+   <button class="comeco c4" id="bTeste"><span class="ic">🖊️</span>Teste da caneta<small>Veja a força da caneta da mesa XP-Pen</small></button>
+  </div>
+  <input type="file" id="arquivo" accept="image/*" hidden>
+  <h2>📚 Aprender brincando · Ensino infantil</h2><div class="paginas" id="pagInfantil"></div>
+  <h2>✝️ Histórias da Bíblia</h2><div class="paginas" id="pagBiblia"></div>
+  <h2>🖍️ Meus desenhos</h2><div class="galeria" id="galeria"></div>
+ </main>
+</section>
+
+<!-- ================= ATELIÊ ================= -->
+<section class="tela" id="tAtelie">
+ <div class="barraTopo">
+  <button class="bt" id="bVoltar">← Início</button>
+  <span class="titulo" id="titulo"></span>
+  <div class="missao" id="missao"><svg class="ava" id="avaMissao" viewBox="0 0 200 226"></svg><span id="missaoTxt"></span></div>
+  <button class="bt" id="bDesfazer" title="Desfazer (Ctrl+Z)">↶</button><button class="bt" id="bRefazer" title="Refazer (Ctrl+Y)">↷</button>
+  <button class="bt" id="bLimpar" title="Apagar a pintura (as linhas ficam)">🧽 Limpar</button>
+  <button class="bt" id="bSalvar" title="Guardar na galeria e baixar o PNG (S)">💾 Salvar</button>
+  <button class="bt festa" id="bTerminei">⭐ Terminei!</button>
+ </div>
+ <div class="area">
+  <div class="ferramentas" id="ferramentas"></div>
+  <div class="mesa" id="mesa"><div class="folha" id="folha"><canvas id="cvFoto" width="1200" height="900"></canvas><canvas id="cvPintura" width="1200" height="900"></canvas><canvas id="cvLinhas" width="1200" height="900"></canvas></div></div>
+  <div class="lado">
+   <h3>Cores</h3><div class="cores" id="cores"></div>
+   <label>Outra cor <input type="color" id="corLivre" value="#ff4fa3"></label>
+   <h3>Tamanho</h3><input type="range" id="tam" min="2" max="80" value="16" aria-label="Tamanho do traço">
+   <h3>Transparência</h3><input type="range" id="opa" min="10" max="100" value="100" aria-label="Opacidade">
+   <h3>Carimbos</h3><div class="carimbos" id="carimbos"></div>
+   <h3>Truques</h3>
+   <label><input type="checkbox" id="espelho"> 🦋 Espelho (desenha dos dois lados)</label>
+   <label id="lblFoto" hidden>Foto de fundo <input type="range" id="fotoOpa" min="0" max="100" value="60"></label>
+   <h3>Caneta</h3><div class="pressao"><i id="barraPressao"></i></div><small id="infoCaneta" style="color:var(--suave)">Encoste a caneta na folha</small>
+  </div>
+ </div>
+</section>
+
+<div class="modal" id="mFim"><div class="caixa"><svg class="ava" id="avaFim" viewBox="0 0 200 226" style="width:150px;height:170px"></svg><h2 id="fimTitulo">Que lindo!</h2><div class="grande">⭐⭐⭐</div><p id="fimTexto"></p><div class="foto-opcoes"><button class="bt" id="bContinuar">Continuar pintando</button><button class="bt festa" id="bFimInicio">Escolher outro desenho</button></div></div></div>
+<div class="modal" id="mFoto"><div class="caixa"><h2>📷 Foto → folha de colorir</h2><p>Mexa no controle até as linhas ficarem boas para pintar.</p><canvas id="cvPrevia" width="600" height="450" style="width:100%;border:2px solid var(--linha);border-radius:12px"></canvas><label style="display:block;font-weight:800;margin-top:8px">Detalhe: poucos ↔ muitos <input type="range" id="detalhe" min="2" max="40" value="14" style="width:100%"></label><div class="foto-opcoes"><button class="bt" id="bFotoCancelar">Cancelar</button><button class="bt festa" id="bFotoUsar">Usar esta folha</button></div></div></div>
+<div class="modal" id="mTeste"><div class="caixa"><h2>🖊️ Teste da caneta</h2><p>Desenhe aqui apertando fraco e forte. A barra deve subir e descer com a força.</p><canvas id="cvTeste" width="520" height="220" style="width:100%;border:2px solid var(--linha);border-radius:12px;touch-action:none;background:#fff"></canvas><div class="pressao" style="margin-top:8px"><i id="barraTeste"></i></div><p id="txtTeste" style="font-weight:800"></p><p style="font-size:14px;color:var(--suave)">Se a força ficar sempre em 0,50 com a caneta, abra o programa da XP-Pen e ligue a opção <b>Windows Ink</b>; depois feche e abra o navegador.</p><button class="bt festa" id="bTesteOk">Pronto</button></div></div>
+<canvas id="confete"></canvas>
+
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const W=1200,H=900;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+/* ===== personagem (o mesmo desenho da Jornada; nenhuma foto é usada) ===== */
+function avatar(svg,humor='feliz'){const P=svg.id+'-';
+ const olhos=humor==='festa'?'<path d="M76 110 q8 -10 16 0 M108 110 q8 -10 16 0" stroke="#3a2416" stroke-width="5" fill="none" stroke-linecap="round"/>':'<ellipse cx="84" cy="110" rx="6" ry="7" fill="#3a2416"/><ellipse cx="116" cy="110" rx="6" ry="7" fill="#3a2416"/><circle cx="86" cy="107" r="2.2" fill="#fff"/><circle cx="118" cy="107" r="2.2" fill="#fff"/>';
+ const boca=humor==='festa'?'<path d="M82 130 q18 26 36 0 z" fill="#a13d4f"/><path d="M88 132 q12 8 24 0" fill="#fff"/>':'<path d="M84 132 q16 16 32 0" stroke="#a13d4f" stroke-width="5" fill="none" stroke-linecap="round"/>';
+ const brilho=humor==='festa'?'<g fill="#ffcf33"><path d="M28 40 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z"/><path d="M168 30 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3z"/></g>':'';
+ svg.innerHTML=`<defs><linearGradient id="${P}j" x1="0" x2="1"><stop offset="0" stop-color="#7d9cc8"/><stop offset="1" stop-color="#58739e"/></linearGradient><linearGradient id="${P}c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b5a3c"/><stop offset="1" stop-color="#b98458"/></linearGradient></defs>
+ <path d="M50 96 q-6 70 12 120 h76 q18 -50 12 -120 q-50 -40 -100 0z" fill="url(#${P}c)"/><path d="M60 196 q40 -26 80 0 l6 30 h-92z" fill="#ff7ab8"/>
+ <path d="M54 200 q10 -26 34 -30 l-6 56 h-34z M146 200 q-10 -26 -34 -30 l6 56 h34z" fill="url(#${P}j)"/><rect x="90" y="150" width="20" height="24" rx="8" fill="#f1c4a1"/>
+ <ellipse cx="100" cy="112" rx="40" ry="46" fill="#f6d0b0"/><ellipse cx="74" cy="126" rx="7" ry="4" fill="#ff9fb5" opacity=".6"/><ellipse cx="126" cy="126" rx="7" ry="4" fill="#ff9fb5" opacity=".6"/>
+ <path d="M54 118 Q50 44 100 40 Q150 44 146 118 Q140 86 116 80 Q100 92 84 80 Q60 86 54 118Z" fill="url(#${P}c)"/><path d="M56 100 q-12 46 -6 96 q10 -44 14 -88z M144 100 q12 46 6 96 q-10 -44 -14 -88z" fill="#a8744d"/>
+ <path d="M60 70 Q100 40 140 70" stroke="#ff4fa3" stroke-width="12" fill="none" stroke-linecap="round"/>${olhos}${boca}${brilho}`}
+
+/* ===== páginas prontas (desenhadas aqui, em vetor; o texto bíblico é resumo com a referência) ===== */
+const T='fill="#1d1d1f" stroke="none" font-family="Segoe UI, Arial" font-weight="700"';
+const OCO='fill="none" stroke="#1d1d1f" stroke-width="6" font-family="Arial Black, Segoe UI Black, Arial" font-weight="900"';
+const svgPag=inner=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"><g fill="none" stroke="#1d1d1f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`;
+const estrela=(cx,cy,R,r,n=5)=>{let p=[];for(let k=0;k<2*n;k++){const a=-Math.PI/2+k*Math.PI/n,rr=k%2?r:R;p.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1))}return `<polygon points="${p.join(' ')}"/>`};
+const coracao=(x,y,s)=>`<path d="M${x} ${y+s*.3} C${x} ${y-s*.25} ${x-s*.95} ${y-s*.2} ${x-s*.9} ${y+s*.25} C${x-s*.85} ${y+s*.6} ${x-s*.2} ${y+s*.85} ${x} ${y+s*1.05} C${x+s*.2} ${y+s*.85} ${x+s*.85} ${y+s*.6} ${x+s*.9} ${y+s*.25} C${x+s*.95} ${y-s*.2} ${x} ${y-s*.25} ${x} ${y+s*.3}Z"/>`;
+const maca=(x,y,s)=>`<circle cx="${x}" cy="${y}" r="${s}"/><path d="M${x} ${y-s} q2 -${s*.5} ${s*.15} -${s*.6}"/><path d="M${x+s*.1} ${y-s*1.25} q${s*.5} -${s*.35} ${s*.7} ${s*.05} q-${s*.4} ${s*.25} -${s*.7} -${s*.05}z"/>`;
+const sol=(x,y,r)=>{let s=`<circle cx="${x}" cy="${y}" r="${r}"/>`;for(let k=0;k<12;k++){const a=k*Math.PI/6;s+=`<line x1="${x+(r+14)*Math.cos(a)}" y1="${y+(r+14)*Math.sin(a)}" x2="${x+(r+44)*Math.cos(a)}" y2="${y+(r+44)*Math.sin(a)}"/>`}return s};
+const nuvem=(x,y,s)=>`<path d="M${x} ${y} a${s*.5} ${s*.5} 0 0 1 ${s*.45} -${s*.55} a${s*.6} ${s*.6} 0 0 1 ${s} -${s*.2} a${s*.5} ${s*.5} 0 0 1 ${s*.75} ${s*.4} a${s*.4} ${s*.4} 0 0 1 0 ${s*.75} h-${s*2.2} a${s*.4} ${s*.4} 0 0 1 0 -${s*.4}z"/>`;
+const arcoIris=(cx,cy,R,n=7,passo=34)=>{let s='';for(let k=0;k<=n;k++){const r=R-k*passo;s+=`<path d="M${cx-r} ${cy} A${r} ${r} 0 0 1 ${cx+r} ${cy}"/>`}return s+`<line x1="${cx-R}" y1="${cy}" x2="${cx-R+n*passo}" y2="${cy}"/><line x1="${cx+R-n*passo}" y1="${cy}" x2="${cx+R}" y2="${cy}"/>`};
+const ovelha=(x,y,s)=>{let c='';[[0,0],[.5,-.35],[1,-.1],[1.2,.35],[.75,.55],[.2,.55],[-.2,.3]].forEach(([a,b])=>c+=`<circle cx="${x+a*s}" cy="${y+b*s}" r="${s*.42}"/>`);return c+`<ellipse cx="${x-s*.55}" cy="${y+s*.1}" rx="${s*.32}" ry="${s*.26}"/><line x1="${x+.1*s}" y1="${y+.9*s}" x2="${x+.1*s}" y2="${y+1.35*s}"/><line x1="${x+.9*s}" y1="${y+.9*s}" x2="${x+.9*s}" y2="${y+1.35*s}"/>`};
+const ondas=(y,amp=22)=>{let d=`M0 ${y}`;for(let x=0;x<W;x+=100)d+=` q25 -${amp} 50 0 q25 ${amp} 50 0`;return `<path d="${d}"/>`};
+const legenda=(t,y=870)=>`<text x="600" y="${y}" text-anchor="middle" font-size="30" ${T}>${t}</text>`;
+function pontos(lista,fechar=true){let s='';lista.forEach(([x,y],k)=>{s+=`<circle cx="${x}" cy="${y}" r="7" fill="#1d1d1f" stroke="none"/><text x="${x+14}" y="${y-12}" font-size="30" ${T}>${k+1}</text>`});return s}
+const estrelaPts=(cx,cy,R,r)=>{const p=[];for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,rr=k%2?r:R;p.push([Math.round(cx+rr*Math.cos(a)),Math.round(cy+rr*Math.sin(a))])}return p};
+const PAGINAS=[
+ {id:'casa',cat:'infantil',titulo:'Minha casinha',missao:'Pinte o céu de azul, o sol de amarelo e a porta da sua cor preferida!',
+  svg:svgPag(`${sol(160,150,62)}${nuvem(820,150,110)}<line x1="0" y1="760" x2="1200" y2="760"/><polygon points="340,440 600,230 860,440"/><rect x="380" y="440" width="440" height="320"/><rect x="560" y="580" width="100" height="180"/><circle cx="640" cy="675" r="7" fill="#1d1d1f"/><rect x="420" y="490" width="100" height="90"/><line x1="470" y1="490" x2="470" y2="580"/><line x1="420" y1="535" x2="520" y2="535"/><rect x="700" y="490" width="100" height="90"/><line x1="750" y1="490" x2="750" y2="580"/><line x1="700" y1="535" x2="800" y2="535"/><rect x="990" y="540" width="56" height="220"/><circle cx="1018" cy="470" r="110"/><line x1="200" y1="760" x2="200" y2="640"/>${[[0,-40],[38,-12],[24,32],[-24,32],[-38,-12]].map(([a,b])=>`<circle cx="${200+a}" cy="${600+b}" r="26"/>`).join('')}<circle cx="200" cy="600" r="18"/>`)},
+ {id:'formas',cat:'infantil',titulo:'Formas geométricas',missao:'Pinte o círculo de azul, o quadrado de vermelho, o triângulo de verde e a estrela de amarelo!',
+  svg:svgPag(`<circle cx="210" cy="280" r="130"/><rect x="460" y="150" width="260" height="260"/><polygon points="980,140 1120,410 840,410"/><rect x="120" y="560" width="400" height="220"/>${estrela(860,660,170,70)}<text x="210" y="460" text-anchor="middle" font-size="34" ${T}>círculo</text><text x="590" y="460" text-anchor="middle" font-size="34" ${T}>quadrado</text><text x="980" y="460" text-anchor="middle" font-size="34" ${T}>triângulo</text><text x="320" y="830" text-anchor="middle" font-size="34" ${T}>retângulo</text><text x="860" y="870" text-anchor="middle" font-size="34" ${T}>estrela</text>`)},
+ {id:'contar',cat:'infantil',titulo:'Conte e pinte',missao:'Conte cada linha: pinte 1 sol, 2 corações, 3 maçãs, 4 estrelas e 5 balões!',
+  svg:svgPag(`${[1,2,3,4,5].map((n,k)=>`<text x="70" y="${130+k*170}" font-size="80" ${OCO}>${n}</text>`).join('')}${sol(300,100,40)}${[0,1].map(k=>coracao(260+k*150,40+170,60)).join('')}${[0,1,2].map(k=>maca(270+k*150,440,50)).join('')}${[0,1,2,3].map(k=>estrela(270+k*150,610,62,26)).join('')}${[0,1,2,3,4].map(k=>`<ellipse cx="${270+k*150}" cy="770" rx="45" ry="55"/><path d="M${270+k*150} 825 q10 25 -5 50"/>`).join('')}`)},
+ {id:'vogais',cat:'infantil',titulo:'As vogais',missao:'Pinte cada vogal de uma cor diferente e fale o nome dela em voz alta: A, E, I, O, U!',
+  svg:svgPag(`<text x="150" y="380" font-size="300" ${OCO}>A</text><text x="500" y="380" font-size="300" ${OCO}>E</text><text x="880" y="380" font-size="300" ${OCO}>I</text><text x="300" y="790" font-size="300" ${OCO}>O</text><text x="720" y="790" font-size="300" ${OCO}>U</text>`)},
+ {id:'arcoiris',cat:'infantil',titulo:'Cores do arco-íris',missao:'Pinte de fora para dentro: vermelho, laranja, amarelo, verde, azul, anil e violeta!',
+  svg:svgPag(`${arcoIris(600,700,520)}${nuvem(80,720,120)}${nuvem(900,720,120)}`)},
+ {id:'frutas',cat:'infantil',titulo:'Frutas gostosas',missao:'Pinte cada fruta com a cor dela: maçã, banana, uvas e laranja. Qual você mais gosta?',
+  svg:svgPag(`${maca(230,300,130)}<path d="M520 200 q180 260 470 180 q-40 50 -110 70 q-280 50 -400 -230z"/><line x1="520" y1="200" x2="505" y2="170"/>${[[0,0],[-50,0],[50,0],[-25,45],[25,45],[0,90],[-75,-45],[-25,-45],[25,-45],[75,-45]].map(([a,b])=>`<circle cx="${300+a}" cy="${680+b}" r="34"/>`).join('')}<path d="M300 590 q10 -50 40 -70"/><circle cx="820" cy="680" r="140"/><path d="M820 540 q40 -50 90 -30 q-40 40 -90 30z"/>`)},
+ {id:'pontos-estrela',cat:'infantil',titulo:'Ligue os pontos: estrela',missao:'Ligue os pontos de 1 até 10 e depois volte ao 1. Que forma apareceu?',
+  svg:svgPag(pontos(estrelaPts(600,470,360,150)))},
+ {id:'tracar-nome',cat:'infantil',titulo:'Trace o seu nome',missao:'Passe a caneta bem em cima das letras tracejadas do seu nome: E - S - T - E - R!',
+  svg:svgPag(`<text x="600" y="420" text-anchor="middle" font-size="260" letter-spacing="20" fill="none" stroke="#9a92a8" stroke-width="5" stroke-dasharray="14 16" font-family="Segoe UI, Arial" font-weight="400">ESTER</text><text x="600" y="780" text-anchor="middle" font-size="200" letter-spacing="40" fill="none" stroke="#9a92a8" stroke-width="5" stroke-dasharray="14 16" font-family="Segoe UI, Arial" font-weight="400">1 2 3 4 5</text>`)},
+ {id:'criacao',cat:'biblia',titulo:'A Criação',missao:'Deus fez o céu, a terra, o sol, a lua, as estrelas, as plantas e os animais. Pinte tudo o que Deus criou!',
+  svg:svgPag(`${legenda('No princípio, criou Deus os céus e a terra. (Gênesis 1:1)',60)}${sol(170,220,60)}<path d="M1010 140 a90 90 0 1 0 60 160 a70 70 0 1 1 -60 -160z"/>${estrela(600,170,40,16)}${estrela(760,250,30,12)}${estrela(450,270,30,12)}<rect x="230" y="520" width="40" height="190"/><circle cx="250" cy="460" r="95"/><line x1="0" y1="710" x2="620" y2="710"/>${ondas(720,18)}<path d="M760 800 q60 -55 120 0 q-60 55 -120 0z"/><path d="M880 800 l40 -30 v60z"/><path d="M820 420 q25 -30 50 0 q25 -30 50 0"/><path d="M640 380 q20 -24 40 0 q20 -24 40 0"/>`)},
+ {id:'noe',cat:'biblia',titulo:'A arca de Noé',missao:'Deus cuidou de Noé, da sua família e dos animais. Pinte a arca e o arco-íris da promessa!',
+  svg:svgPag(`${legenda('Deus pôs o arco-íris no céu como sinal da sua promessa. (Gênesis 9)',60)}${arcoIris(600,520,420,5,30)}<path d="M200 560 h800 l-90 150 h-620z"/><rect x="420" y="440" width="360" height="120"/><polygon points="400,440 600,350 800,440"/><rect x="560" y="470" width="80" height="60"/>${ondas(760,22)}${ondas(830,16)}<line x1="300" y1="560" x2="300" y2="470"/><circle cx="300" cy="450" r="22"/><line x1="900" y1="560" x2="900" y2="490"/><circle cx="900" cy="470" r="22"/>`)},
+ {id:'davi',cat:'biblia',titulo:'Davi e as cinco pedras',missao:'Davi escolheu cinco pedras lisas e confiou em Deus. Conte as pedras e pinte cada uma de uma cor!',
+  svg:svgPag(`${legenda('Davi escolheu cinco pedras lisas do riacho. (1 Samuel 17:40)',60)}<path d="M180 260 q260 220 520 0"/><ellipse cx="440" cy="400" rx="90" ry="55"/><line x1="180" y1="260" x2="150" y2="200"/><line x1="700" y1="260" x2="730" y2="200"/>${[[300,650,70,48],[470,690,60,42],[630,640,75,50],[800,700,58,40],[950,640,66,46]].map(([x,y,a,b])=>`<ellipse cx="${x}" cy="${y}" rx="${a}" ry="${b}"/>`).join('')}${ondas(800,14)}${ovelha(930,300,70)}`)},
+ {id:'jonas',cat:'biblia',titulo:'Jonas e o grande peixe',missao:'Deus cuidou de Jonas dentro do grande peixe. Pinte o peixe, o mar e o Jonas!',
+  svg:svgPag(`${legenda('Deus cuidou de Jonas e ele obedeceu. (Jonas 1 e 2)',60)}<ellipse cx="560" cy="430" rx="380" ry="210"/><polygon points="930,430 1130,280 1130,580"/><circle cx="330" cy="370" r="26"/><path d="M190 470 q60 30 120 0"/><path d="M460 300 q100 -60 200 0"/><circle cx="600" cy="460" r="34"/><line x1="600" y1="494" x2="600" y2="570"/><line x1="560" y1="520" x2="640" y2="520"/><line x1="600" y1="570" x2="570" y2="620"/><line x1="600" y1="570" x2="630" y2="620"/>${ondas(720,26)}${ondas(800,20)}`)},
+ {id:'pastor',cat:'biblia',titulo:'O Bom Pastor',missao:'Jesus cuida de nós como o pastor cuida das ovelhas. Pinte as ovelhas e o cajado!',
+  svg:svgPag(`${legenda('O Senhor é o meu pastor; nada me faltará. (Salmos 23:1)',60)}${ovelha(340,420,120)}${ovelha(820,520,90)}<path d="M1060 820 v-520 q0 -90 -80 -90 q-60 0 -60 60"/><line x1="0" y1="780" x2="1000" y2="780"/>${sol(120,180,50)}`)},
+ {id:'natal',cat:'biblia',titulo:'O nascimento de Jesus',missao:'Jesus nasceu em Belém e uma estrela brilhou no céu. Pinte a estrela, a manjedoura e o bebê Jesus!',
+  svg:svgPag(`${legenda('Jesus nasceu em Belém. (Lucas 2)',870)}${estrela(600,160,90,36)}<line x1="600" y1="260" x2="600" y2="330"/><polygon points="250,420 600,250 950,420"/><line x1="290" y1="420" x2="290" y2="820"/><line x1="910" y1="420" x2="910" y2="820"/><path d="M420 600 h360 l-50 110 h-260z"/><line x1="450" y1="710" x2="400" y2="820"/><line x1="750" y1="710" x2="800" y2="820"/><ellipse cx="600" cy="590" rx="130" ry="45"/><circle cx="500" cy="570" r="34"/>`)},
+ {id:'amor',cat:'biblia',titulo:'Deus é amor',missao:'Pinte as letras e os corações. Depois conte para alguém: Deus é amor!',
+  svg:svgPag(`<text x="600" y="380" text-anchor="middle" font-size="240" ${OCO}>DEUS É</text><text x="600" y="660" text-anchor="middle" font-size="260" ${OCO}>AMOR</text>${coracao(140,120,70)}${coracao(1060,120,70)}${coracao(140,700,60)}${coracao(1060,700,60)}${legenda('1 João 4:8',850)}`)},
+];
+
+/* ===== estado e armazenamento (tudo no navegador) ===== */
+const CHAVE_GAL='atelie-ester:galeria';
+let galeria=[];try{galeria=JSON.parse(localStorage.getItem(CHAVE_GAL)||'[]')}catch(e){}
+function salvarGaleria(){try{localStorage.setItem(CHAVE_GAL,JSON.stringify(galeria))}catch(e){galeria.shift();try{localStorage.setItem(CHAVE_GAL,JSON.stringify(galeria))}catch(_){} }}
+
+/* ===== início ===== */
+function miniatura(p){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(p.svg)}
+function inicio(){avatar($('avaInicio'),'feliz');
+ for(const [cat,el] of [['infantil','pagInfantil'],['biblia','pagBiblia']])$(el).innerHTML=PAGINAS.filter(p=>p.cat===cat).map(p=>`<button class="pagina" data-pag="${p.id}"><img alt="" src="${miniatura(p)}">${p.titulo}<small>${p.missao.split(/[.!]/)[0]}</small></button>`).join('');
+ $('galeria').innerHTML=galeria.length?galeria.slice().reverse().map(g=>`<figure><img alt="${g.titulo}" src="${g.img}"><figcaption>${g.titulo}<br>${g.data}</figcaption><button data-apagar="${g.id}">apagar</button></figure>`).join(''):'<p style="color:var(--suave)">Os desenhos salvos aparecem aqui.</p>'}
+document.addEventListener('click',e=>{const p=e.target.closest('[data-pag]');if(p)abrirPagina(PAGINAS.find(x=>x.id===p.dataset.pag));
+ const a=e.target.closest('[data-apagar]');if(a&&confirm('Apagar este desenho da galeria?')){galeria=galeria.filter(g=>g.id!==a.dataset.apagar);salvarGaleria();inicio()}});
+
+/* ===== ateliê: camadas ===== */
+const cvP=$('cvPintura'),cP=cvP.getContext('2d',{willReadFrequently:true});
+const cvL=$('cvLinhas'),cL=cvL.getContext('2d',{willReadFrequently:true});
+const cvF=$('cvFoto'),cF=cvF.getContext('2d');
+let atual={id:'branca',titulo:'Tela em branco',missao:'Desenhe o que quiser! Experimente o espelho 🦋 e os carimbos.'};
+function ir(t){document.querySelectorAll('.tela').forEach(s=>s.classList.toggle('on',s.id===t));if(t==='tInicio')inicio();else ajustar()}
+function ajustar(){const m=$('mesa'),f=$('folha');const s=Math.min((m.clientWidth-24)/W,(m.clientHeight-24)/H);
+ /* reduz a partir do canto e centraliza pela conta: reduzir pelo centro de uma folha maior que a área a deixava torta */
+ f.style.transform=`translate(${(m.clientWidth-W*s)/2}px,${(m.clientHeight-H*s)/2}px) scale(${s})`;escala=s}
+let escala=1;addEventListener('resize',()=>{if($('tAtelie').classList.contains('on'))ajustar()});
+function limparTudo(){cP.clearRect(0,0,W,H);cL.clearRect(0,0,W,H);cF.clearRect(0,0,W,H);historico=[];refazer=[];$('lblFoto').hidden=true;cvF.style.opacity=1}
+function abrirAtelie(info){atual=info;ir('tAtelie');$('titulo').textContent=info.titulo;$('missaoTxt').textContent=info.missao;avatar($('avaMissao'),'feliz');guardarPasso()}
+function desenharSVG(svg){return new Promise(ok=>{const img=new Image();img.onload=()=>{cL.drawImage(img,0,0,W,H);ok()};img.onerror=()=>ok();img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)})}
+async function abrirPagina(p){limparTudo();abrirAtelie(p);await desenharSVG(p.svg)}
+$('bBranca').onclick=()=>{limparTudo();abrirAtelie({id:'branca',titulo:'Tela em branco',missao:'Desenhe o que quiser! Experimente o espelho 🦋, o arco-íris 🌈 e os carimbos.'})};
+$('bVoltar').onclick=()=>ir('tInicio');
+
+/* ===== ferramentas ===== */
+const FERR=[['pincel','🖌️','Pincel'],['lapis','✏️','Lápis'],['giz','🖍️','Giz de cera'],['caneta','🖊️','Canetinha'],['spray','💨','Spray'],['arco','🌈','Arco-íris'],['purpurina','✨','Purpurina'],['balde','🪣','Balde'],['carimbo','⭐','Carimbo'],['borracha','🧽','Borracha']];
+const CORES=['#1d1d1f','#ffffff','#e53935','#ff7043','#ff9800','#ffcf33','#fff176','#8bc34a','#2e9e5b','#00bcd4','#3b6fd8','#1a237e','#8a4fd3','#e040fb','#ff4fa3','#f8bbd0','#8d6e63','#5d4037','#ffcc80','#f6d0b0','#9e9e9e','#b2ebf2','#c5e1a5','#ffe0b2'];
+const CARIMBOS=['⭐','❤️','🌸','☀️','🌈','🐑','🕊️','🐟','🦋','🌳','🍎','🎈','👑','🎵','✝️'];
+let ferr='pincel',cor='#ff4fa3',carimbo='⭐';
+$('ferramentas').innerHTML=FERR.map(([id,ic,n])=>`<button data-ferr="${id}" class="${id===ferr?'on':''}" title="${n}"><span class="ic">${ic}</span>${n}</button>`).join('');
+$('ferramentas').addEventListener('click',e=>{const b=e.target.closest('[data-ferr]');if(!b)return;ferr=b.dataset.ferr;document.querySelectorAll('[data-ferr]').forEach(x=>x.classList.toggle('on',x===b))});
+$('cores').innerHTML=CORES.map(c=>`<button data-cor="${c}" style="background:${c}" class="${c===cor?'on':''}" aria-label="cor ${c}"></button>`).join('');
+$('cores').addEventListener('click',e=>{const b=e.target.closest('[data-cor]');if(!b)return;cor=b.dataset.cor;document.querySelectorAll('[data-cor]').forEach(x=>x.classList.toggle('on',x===b));if(ferr==='borracha'||ferr==='carimbo')escolher('pincel')});
+$('corLivre').oninput=e=>{cor=e.target.value;document.querySelectorAll('[data-cor]').forEach(x=>x.classList.remove('on'))};
+$('carimbos').innerHTML=CARIMBOS.map(c=>`<button data-car="${c}" class="${c===carimbo?'on':''}">${c}</button>`).join('');
+$('carimbos').addEventListener('click',e=>{const b=e.target.closest('[data-car]');if(!b)return;carimbo=b.dataset.car;document.querySelectorAll('[data-car]').forEach(x=>x.classList.toggle('on',x===b));escolher('carimbo')});
+function escolher(f){ferr=f;document.querySelectorAll('[data-ferr]').forEach(x=>x.classList.toggle('on',x.dataset.ferr===f))}
+$('fotoOpa').oninput=e=>{cvF.style.opacity=e.target.value/100};
+
+/* ===== desfazer / refazer (guarda a camada de pintura) ===== */
+let historico=[],refazer=[];
+function guardarPasso(){historico.push(cP.getImageData(0,0,W,H));if(historico.length>16)historico.shift();refazer=[]}
+$('bDesfazer').onclick=desfazer;$('bRefazer').onclick=refaz;
+function desfazer(){if(historico.length<2)return;refazer.push(historico.pop());cP.putImageData(historico[historico.length-1],0,0)}
+function refaz(){if(!refazer.length)return;const s=refazer.pop();historico.push(s);cP.putImageData(s,0,0)}
+$('bLimpar').onclick=()=>{if(confirm('Apagar toda a pintura? (As linhas do desenho ficam.)')){cP.clearRect(0,0,W,H);guardarPasso()}};
+
+/* ===== traço com pressão ===== */
+let tr=null,hue=0;
+const rgba=(hex,a)=>{const n=parseInt(hex.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`};
+function ponto(e){const r=$('folha').getBoundingClientRect();return{x:(e.clientX-r.left)/escala,y:(e.clientY-r.top)/escala,p:e.pointerType==='mouse'||!e.pressure?0.5:e.pressure}}
+function largura(p){const t=+$('tam').value;return Math.max(1,t*(0.25+0.95*p))}
+function segmento(ctx,a,b,espelho){
+ const op=+$('opa').value/100,f=ferr,w=largura(b.p);ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+ const linha=(c,lw,comp='source-over',alpha=op)=>{ctx.globalCompositeOperation=comp;ctx.globalAlpha=alpha;ctx.strokeStyle=c;ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()};
+ if(f==='pincel')linha(cor,w);
+ else if(f==='lapis'){linha(cor,Math.max(1.5,w*.25),'source-over',op*.85);for(let k=0;k<3;k++){ctx.globalAlpha=op*.25;ctx.fillStyle=cor;ctx.fillRect(b.x+(Math.random()-.5)*2,b.y+(Math.random()-.5)*2,1,1)}}
+ else if(f==='caneta'){linha(cor,Math.max(3,+$('tam').value*.6),'source-over',op*.55)}
+ else if(f==='borracha')linha('#000',w*1.6,'destination-out',1);
+ else if(f==='arco'){hue=(hue+4)%360;linha(`hsl(${hue},90%,55%)`,w)}
+ else if(f==='giz'){const d=Math.hypot(b.x-a.x,b.y-a.y),n=Math.max(1,Math.ceil(d/2));ctx.fillStyle=cor;
+  for(let k=0;k<n;k++){const t=k/n,x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t;for(let j=0;j<Math.ceil(w*.9);j++){ctx.globalAlpha=op*(.25+Math.random()*.55);const rr=w*.5*Math.sqrt(Math.random()),an=Math.random()*6.283;ctx.fillRect(x+rr*Math.cos(an),y+rr*Math.sin(an),1.6,1.6)}}}
+ else if(f==='spray'){ctx.fillStyle=cor;const n=Math.ceil(w*1.4);for(let j=0;j<n;j++){ctx.globalAlpha=op*.5;const rr=w*1.3*Math.sqrt(Math.random()),an=Math.random()*6.283;ctx.fillRect(b.x+rr*Math.cos(an),b.y+rr*Math.sin(an),1.4,1.4)}}
+ else if(f==='purpurina'){linha(cor,w*.6,'source-over',op*.7);for(let j=0;j<4;j++){ctx.globalAlpha=op;ctx.fillStyle=pick(['#fff','#ffe082',cor,'#e1bee7']);const rr=w*Math.random(),an=Math.random()*6.283,s=1+Math.random()*3;ctx.fillRect(b.x+rr*Math.cos(an),b.y+rr*Math.sin(an),s,s)}}
+ ctx.restore();
+ if(espelho&&$('espelho').checked)segmento(ctx,{x:W-a.x,y:a.y,p:a.p},{x:W-b.x,y:b.y,p:b.p},false)}
+function carimbar(pt){const s=+$('tam').value*3+20;const desenha=(x)=>{cP.save();cP.globalAlpha=+$('opa').value/100;cP.font=`${s}px "Segoe UI Emoji","Apple Color Emoji",sans-serif`;cP.textAlign='center';cP.textBaseline='middle';cP.fillText(carimbo,x,pt.y);cP.restore()};desenha(pt.x);if($('espelho').checked)desenha(W-pt.x)}
+const folha=$('folha');
+folha.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();folha.setPointerCapture(e.pointerId);const pt=ponto(e);mostrarPressao(e,pt.p);
+ const apagar=(e.buttons&32)||(e.pointerType==='pen'&&(e.buttons&2)); // ponta de borracha ou botão da caneta
+ if(ferr==='balde'&&!apagar){balde(Math.round(pt.x),Math.round(pt.y));guardarPasso();return}
+ if(ferr==='carimbo'&&!apagar){carimbar(pt);guardarPasso();return}
+ tr={ult:pt,id:e.pointerId,ferrAntes:ferr};if(apagar)ferr='borracha';segmento(cP,pt,{...pt,x:pt.x+.1},true)});
+folha.addEventListener('pointermove',e=>{const pt0=ponto(e);mostrarPressao(e,pt0.p);if(!tr||e.pointerId!==tr.id)return;const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];
+ for(const ev of (evs.length?evs:[e])){const pt=ponto(ev);segmento(cP,tr.ult,pt,true);tr.ult=pt}});
+const fim=e=>{if(tr&&e.pointerId===tr.id){ferr=tr.ferrAntes;tr=null;guardarPasso()}};
+folha.addEventListener('pointerup',fim);folha.addEventListener('pointercancel',fim);folha.addEventListener('contextmenu',e=>e.preventDefault());
+function mostrarPressao(e,p){$('barraPressao').style.width=Math.round(p*100)+'%';$('infoCaneta').textContent=e.pointerType==='pen'?`Caneta · força ${p.toFixed(2).replace('.',',')}`:e.pointerType==='mouse'?'Mouse (sem força: use a caneta da mesa)':'Toque'}
+
+/* ===== balde: pinta a área fechada; as linhas do desenho são paredes ===== */
+function balde(x,y){if(x<0||y<0||x>=W||y>=H)return;const lin=cL.getImageData(0,0,W,H).data,pin=cP.getImageData(0,0,W,H),d=pin.data;
+ const n=parseInt(cor.slice(1),16),R=n>>16&255,G=n>>8&255,B=n&255,A=Math.round(255*(+$('opa').value/100));
+ const i0=(y*W+x)*4;if(lin[i0+3]>90)return;const sr=d[i0],sg=d[i0+1],sb=d[i0+2],sa=d[i0+3];
+ if(sr===R&&sg===G&&sb===B&&sa===A)return;
+ const igual=i=>lin[i+3]<=90&&Math.abs(d[i]-sr)+Math.abs(d[i+1]-sg)+Math.abs(d[i+2]-sb)+Math.abs(d[i+3]-sa)<60;
+ const marca=new Uint8Array(W*H),pilha=[y*W+x];marca[y*W+x]=1;const reg=[];
+ while(pilha.length){const p=pilha.pop(),px=p%W,py=(p-px)/W;reg.push(p);
+  for(const q of [px>0?p-1:-1,px<W-1?p+1:-1,py>0?p-W:-1,py<H-1?p+W:-1]){if(q<0||marca[q])continue;marca[q]=1;if(igual(q*4))pilha.push(q)}}
+ const pinta=p=>{const i=p*4;d[i]=R;d[i+1]=G;d[i+2]=B;d[i+3]=A};reg.forEach(pinta);
+ /* encosta a tinta por baixo da borda da linha (sem fresta branca entre a cor e o contorno) */
+ for(const p of reg){const px=p%W;for(const q of [p-1,p+1,p-W,p+W,p-2,p+2,p-2*W,p+2*W]){if(q<0||q>=W*H||marca[q])continue;if(Math.abs((q%W)-px)>2)continue;if(lin[q*4+3]>0){marca[q]=1;pinta(q)}}}
+ cP.putImageData(pin,0,0)}
+
+/* ===== foto → folha de colorir (contornos por Sobel) e foto de fundo ===== */
+let modoFoto='folha',fotoImg=null;
+$('bFotoFolha').onclick=()=>{modoFoto='folha';$('arquivo').click()};$('bFotoCima').onclick=()=>{modoFoto='cima';$('arquivo').click()};
+$('arquivo').onchange=e=>{const f=e.target.files[0];if(!f)return;const img=new Image();img.onload=()=>{fotoImg=img;URL.revokeObjectURL(img.src);if(modoFoto==='folha'){$('mFoto').classList.add('on');previa()}else usarFotoDeFundo()};img.src=URL.createObjectURL(f);e.target.value=''};
+function encaixar(ctx,img,w,h){ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);const s=Math.min(w/img.width,h/img.height),iw=img.width*s,ih=img.height*s;ctx.drawImage(img,(w-iw)/2,(h-ih)/2,iw,ih)}
+function contornos(img,w,h,detalhe){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});encaixar(x,img,w,h);
+ const src=x.getImageData(0,0,w,h).data,g=new Float32Array(w*h);for(let i=0;i<w*h;i++)g[i]=.299*src[i*4]+.587*src[i*4+1]+.114*src[i*4+2];
+ const suave=new Float32Array(w*h);for(let y=1;y<h-1;y++)for(let xx=1;xx<w-1;xx++){let s=0;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)s+=g[(y+a)*w+xx+b];suave[y*w+xx]=s/9}
+ const mag=new Float32Array(w*h);let max=1;for(let y=1;y<h-1;y++)for(let xx=1;xx<w-1;xx++){const i=y*w+xx,gx=-suave[i-w-1]-2*suave[i-1]-suave[i+w-1]+suave[i-w+1]+2*suave[i+1]+suave[i+w+1],gy=-suave[i-w-1]-2*suave[i-w]-suave[i-w+1]+suave[i+w-1]+2*suave[i+w]+suave[i+w+1];mag[i]=Math.hypot(gx,gy);if(mag[i]>max)max=mag[i]}
+ /* a moldura da imagem (2 px) não é contorno do desenho */
+ for(let y=0;y<h;y++)for(let xx=0;xx<w;xx++)if(y<2||xx<2||y>=h-2||xx>=w-2)mag[y*w+xx]=0;
+ /* corte pela proporção de pixels que viram linha (Detalhe 2 → ~1%, 40 → ~12%), não pelo máximo: foto real tem contraste muito variado */
+ const BINS=1024,hist=new Uint32Array(BINS);let mx=1;for(let i=0;i<w*h;i++)if(mag[i]>mx)mx=mag[i];for(let i=0;i<w*h;i++)hist[Math.min(BINS-1,Math.floor(mag[i]/mx*(BINS-1)))]++;
+ const alvo=w*h*(0.01+(detalhe/40)*0.11);let acum=0,bin=BINS-1;for(;bin>0;bin--){acum+=hist[bin];if(acum>=alvo)break}
+ const corte=Math.max(mx*bin/(BINS-1),24),out=x.createImageData(w,h);
+ for(let i=0;i<w*h;i++){if(mag[i]>corte){/* linha 2 px: o ponto e o vizinho de baixo/direita */for(const q of [i,i+1,i+w]){if(q<w*h){out.data[q*4+3]=255}}}}
+ return out}
+function previa(){const pv=$('cvPrevia'),x=pv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,pv.width,pv.height);const id=contornos(fotoImg,pv.width,pv.height,+$('detalhe').value);const t=document.createElement('canvas');t.width=pv.width;t.height=pv.height;t.getContext('2d').putImageData(id,0,0);x.drawImage(t,0,0)}
+$('detalhe').oninput=()=>previa();$('bFotoCancelar').onclick=()=>$('mFoto').classList.remove('on');
+$('bFotoUsar').onclick=()=>{$('mFoto').classList.remove('on');limparTudo();abrirAtelie({id:'foto-folha',titulo:'Minha foto para colorir',missao:'Use o balde 🪣 para pintar as partes grandes e o pincel para os detalhes!'});cL.putImageData(contornos(fotoImg,W,H,+$('detalhe').value),0,0)};
+function usarFotoDeFundo(){limparTudo();abrirAtelie({id:'foto-cima',titulo:'Desenhando na foto',missao:'Desenhe por cima da foto! Mexa em "Foto de fundo" para deixá-la mais clarinha.'});encaixar(cF,fotoImg,W,H);$('lblFoto').hidden=false;cvF.style.opacity=$('fotoOpa').value/100}
+
+/* ===== salvar, terminar, galeria ===== */
+function composicao(){const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);
+ if(!$('lblFoto').hidden){x.globalAlpha=$('fotoOpa').value/100;x.drawImage(cvF,0,0);x.globalAlpha=1}x.drawImage(cvP,0,0);x.globalCompositeOperation='multiply';x.drawImage(cvL,0,0);return c}
+function dataHora(){const d=new Date(),z=n=>String(n).padStart(2,'0');return{txt:`${z(d.getDate())}/${z(d.getMonth()+1)}/${d.getFullYear()}`,arq:`${z(d.getDate())}-${z(d.getMonth()+1)}-${d.getFullYear()}_${z(d.getHours())}h${z(d.getMinutes())}`}}
+function salvar(baixar=true){const c=composicao(),dh=dataHora();const m=document.createElement('canvas');m.width=400;m.height=300;m.getContext('2d').drawImage(c,0,0,400,300);
+ galeria.push({id:String(Date.now()),titulo:atual.titulo,data:dh.txt,img:m.toDataURL('image/jpeg',.75)});if(galeria.length>30)galeria.shift();salvarGaleria();
+ if(baixar){const a=document.createElement('a');a.download=`Ester_${atual.id}_${dh.arq}.png`;a.href=c.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove()}}
+$('bSalvar').onclick=()=>{salvar(true);avatar($('avaMissao'),'festa');$('missaoTxt').textContent='Guardei na galeria e baixei o desenho! 💾'};
+$('bTerminei').onclick=()=>{salvar(false);avatar($('avaFim'),'festa');$('fimTitulo').textContent=pick(['Que lindo!','Ficou incrível!','Você é uma artista!','Parabéns!']);
+ $('fimTexto').textContent=atual.cat==='biblia'?'Que bonito aprender a história da Bíblia pintando! Conte para alguém o que você aprendeu.':atual.cat==='infantil'?'Você aprendeu brincando! Seu desenho foi para a galeria.':'Seu desenho foi para a galeria!';$('mFim').classList.add('on');confete()};
+$('bContinuar').onclick=()=>$('mFim').classList.remove('on');$('bFimInicio').onclick=()=>{$('mFim').classList.remove('on');ir('tInicio')};
+function confete(){const c=$('confete'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;const ps=[...Array(120)].map(()=>({x:innerWidth/2,y:innerHeight/3,vx:(Math.random()-.5)*14,vy:Math.random()*-12-4,c:pick(CORES.slice(2)),s:4+Math.random()*6}));let t=0;(function f(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.35;x.fillStyle=p.c;x.fillRect(p.x,p.y,p.s,p.s*1.5)});if(++t<100)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height)})()}
+
+/* ===== teste da caneta ===== */
+$('bTeste').onclick=()=>{$('mTeste').classList.add('on');const c=$('cvTeste'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);$('txtTeste').textContent='Encoste a caneta na área branca.'};
+$('bTesteOk').onclick=()=>$('mTeste').classList.remove('on');
+(()=>{const c=$('cvTeste'),x=c.getContext('2d');let ult=null,valores=new Set();
+ c.addEventListener('pointerdown',e=>{c.setPointerCapture(e.pointerId);const r=c.getBoundingClientRect();ult={x:(e.clientX-r.left)*c.width/r.width,y:(e.clientY-r.top)*c.height/r.height}});
+ c.addEventListener('pointermove',e=>{const p=e.pointerType==='mouse'?.5:e.pressure;$('barraTeste').style.width=Math.round(p*100)+'%';if(!ult)return;const r=c.getBoundingClientRect(),pt={x:(e.clientX-r.left)*c.width/r.width,y:(e.clientY-r.top)*c.height/r.height};
+  x.lineCap='round';x.strokeStyle='#8a4fd3';x.lineWidth=2+p*24;x.beginPath();x.moveTo(ult.x,ult.y);x.lineTo(pt.x,pt.y);x.stroke();ult=pt;valores.add(p.toFixed(2));
+  $('txtTeste').textContent=e.pointerType==='pen'?(valores.size>3?`✅ A caneta está mandando a força (agora: ${p.toFixed(2).replace('.',',')}). Funcionando!`:`Caneta encostada · força ${p.toFixed(2).replace('.',',')} — aperte mais forte e mais fraco`):e.pointerType==='mouse'?'Isso é o mouse: ele não tem força. Use a caneta da mesa.':'Toque na tela.'});
+ c.addEventListener('pointerup',()=>{ult=null})})();
+
+/* ===== atalhos ===== */
+addEventListener('keydown',e=>{if(!$('tAtelie').classList.contains('on')||e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();
+ if((e.ctrlKey||e.metaKey)&&k==='z'){e.preventDefault();desfazer()}else if((e.ctrlKey||e.metaKey)&&k==='y'){e.preventDefault();refaz()}
+ else if(e.ctrlKey||e.metaKey||e.altKey)return;else if(k==='b')escolher('pincel');else if(k==='e')escolher('borracha');else if(k==='g')escolher('balde');else if(k==='s')$('bSalvar').click();
+ else if(k===']')$('tam').value=+$('tam').value+4;else if(k==='[')$('tam').value=+$('tam').value-4});
+
+window.atelieAPI={PAGINAS,abrirPagina,balde,carimbar:(x,y)=>carimbar({x,y}),escolher,setCor:c=>{cor=c},galeria:()=>galeria,contornos,camadas:{cP,cL,cF},usarFotoTeste:img=>{fotoImg=img},ir};
+inicio();
+})();
+</script>
+</body>
+</html>
