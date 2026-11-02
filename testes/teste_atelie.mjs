@@ -36,7 +36,7 @@ const linhaH = (y, x0, x1) => Array.from({ length: 30 }, (_, k) => [x0 + (x1 - x
 // T1 · as 15 páginas prontas aparecem com imagem
 await espera(500);
 const t1 = await avalia("({n:document.querySelectorAll('[data-pag]').length,ok:[...document.querySelectorAll('[data-pag] img')].filter(i=>i.complete&&i.naturalWidth>0).length})");
-confere('T1 · 22 páginas prontas (lápis realista, ensino infantil e Bíblia) com miniatura', t1.n === 22 && t1.ok === 22, JSON.stringify(t1));
+confere('T1 · 52 páginas prontas (mar, animais, pessoas, clássicos, infantil, Bíblia) com miniatura', t1.n === 52 && t1.ok === 52, JSON.stringify(t1));
 await print('A-1-inicio.png');
 // T2 · abrir "Formas": as linhas vão para a camada de cima
 await avalia("document.querySelector('[data-pag=\"formas\"]').click()"); await espera(800);
@@ -84,6 +84,23 @@ const t13b = await avalia(`(()=>{const c=document.createElement('canvas');c.widt
  const img=new Image();return new Promise(ok=>{img.onload=()=>{const d=atelieAPI.lapis(img,1200,900,20).data;let borda=0,fundo=0;for(let k=0;k<360;k+=4){const t=k*Math.PI/180,px=Math.round(600+220*Math.cos(t)),py=Math.round(450+220*Math.sin(t));if(d[(py*1200+px)*4+3]>40)borda++}for(let y=20;y<80;y++)for(let xx=200;xx<300;xx++)if(d[(y*1200+xx)*4+3]>40)fundo++;ok({borda,fundo})};img.src=c.toDataURL()})})()`);
 confere('T13 · desenho a lápis: página realista abre sombreada e a foto vira lápis (borda escura, fundo limpo)', t13a > 20000 && t13b.borda > 60 && t13b.fundo === 0, JSON.stringify({ linhas: t13a, ...t13b }));
 await print('A-7-lapis.png');
+// T14 · desenho em pé (4:5) encaixa sem esticar: as faixas laterais da folha ficam vazias
+await avalia("atelieAPI.ir('tInicio')"); await espera(200);
+await avalia("document.querySelector('[data-pag=\"leao\"]').click()"); await espera(900);
+const t14 = await avalia("(()=>{const d=atelieAPI.camadas.cL.getImageData(0,0,1200,900).data;let lado=0,meio=0;for(let y=0;y<900;y+=3)for(let x=0;x<1200;x+=3){const a=d[(y*1200+x)*4+3];if(a>40){if(x<230||x>970)lado++;else meio++}}return {lado,meio}})()");
+confere('T14 · desenho em pé (leão) encaixa sem distorcer', t14.lado === 0 && t14.meio > 10000, JSON.stringify(t14));
+// T15 · aprenda a desenhar: o guia acende passo a passo, some no fim e não entra no PNG
+await avalia("atelieAPI.ir('tInicio')"); await espera(200);
+const t15a = await avalia("document.querySelectorAll('[data-licao]').length");
+await avalia("document.querySelector('[data-licao=\"l-gato\"]').click()"); await espera(400);
+const azul = "(()=>{const d=atelieAPI.camadas.cF.getImageData(0,0,1200,900).data;let az=0,ci=0;for(let i=0;i<d.length;i+=16){if(d[i+3]<100)continue;if(d[i+2]>180&&d[i]<120)az++;else ci++}return {az,ci}})()";
+const p1 = await avalia(azul); await avalia("atelieAPI.passoLicao(1)"); const p2 = await avalia(azul);
+const txt = await avalia("document.getElementById('missaoTxt').textContent");
+for (let k = 0; k < 6; k++) await avalia("atelieAPI.passoLicao(1)");
+const fim = await avalia(azul); const bt = await avalia("document.getElementById('bPassoProx').disabled");
+confere('T15 · passo a passo: 6 lições; passo 1 azul, passo 2 azul + anterior cinza; no fim o guia some', t15a === 6 && p1.az > 50 && p1.ci === 0 && p2.az > 50 && p2.ci > 50 && /Passo 2 de 6/.test(txt) && fim.az === 0 && fim.ci === 0 && bt === true, JSON.stringify({ t15a, p1, p2, fim, bt }));
+await avalia("atelieAPI.ir('tInicio')"); await espera(200); await avalia("document.querySelector('[data-licao=\"l-coruja\"]').click()"); await espera(400); await avalia("atelieAPI.passoLicao(1);atelieAPI.passoLicao(1)");
+await print('A-8-passo-a-passo.png');
 // T12 · tabuada secreta: legenda sem ambiguidade; tudo pintado certo → Conferir dá 100%; um quadrado com a cor errada é acusado
 await avalia("atelieAPI.ir('tInicio')"); await espera(200);
 const nTab = await avalia("document.querySelectorAll('[data-tab]').length");
