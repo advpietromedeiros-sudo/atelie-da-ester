@@ -99,7 +99,9 @@ const p1 = await avalia(azul); await avalia("atelieAPI.passoLicao(1)"); const p2
 const txt = await avalia("document.getElementById('missaoTxt').textContent");
 for (let k = 0; k < 6; k++) await avalia("atelieAPI.passoLicao(1)");
 const fim = await avalia(azul); const bt = await avalia("document.getElementById('bPassoProx').disabled");
-confere('T15 · passo a passo: 6 lições; passo 1 azul, passo 2 azul + anterior cinza; no fim o guia some', t15a === 6 && p1.az > 50 && p1.ci === 0 && p2.az > 50 && p2.ci > 50 && /Passo 2 de 6/.test(txt) && fim.az === 0 && fim.ci === 0 && bt === true, JSON.stringify({ t15a, p1, p2, fim, bt }));
+const t15c = await avalia("(()=>{const c=document.createElement('canvas');c.width=1200;c.height=900;const x=c.getContext('2d');const ruins=[];for(const l of atelieAPI.LICOES)l.passos.forEach((p,i)=>p.d.forEach(d=>{x.clearRect(0,0,1200,900);x.lineWidth=6;x.stroke(new Path2D(d));const q=x.getImageData(0,0,1200,900).data;let n=0;for(let k=3;k<q.length;k+=40)if(q[k])n++;if(n<3)ruins.push(l.id+' '+(i+1))}));return ruins})()");
+confere('T16 · todo traço de toda lição desenha alguma coisa (caminho SVG válido)', Array.isArray(t15c) && t15c.length === 0, JSON.stringify(t15c));
+confere('T15 · passo a passo: 12 lições; passo 1 azul, passo 2 azul + anterior cinza; no fim o guia some', t15a === 12 && p1.az > 50 && p1.ci === 0 && p2.az > 50 && p2.ci > 50 && /Passo 2 de 6/.test(txt) && fim.az === 0 && fim.ci === 0 && bt === true, JSON.stringify({ t15a, p1, p2, fim, bt }));
 await avalia("atelieAPI.ir('tInicio')"); await espera(200); await avalia("document.querySelector('[data-licao=\"l-coruja\"]').click()"); await espera(400); await avalia("atelieAPI.passoLicao(1);atelieAPI.passoLicao(1)");
 await print('A-8-passo-a-passo.png');
 // T12 · tabuada secreta: legenda sem ambiguidade; tudo pintado certo → Conferir dá 100%; um quadrado com a cor errada é acusado
