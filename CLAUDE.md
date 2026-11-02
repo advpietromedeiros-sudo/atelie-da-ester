@@ -16,9 +16,9 @@
 - **Lápis realista (01/11/2026):** foto → "Desenho a lápis realista" (esquiva de cor com alisamento que preserva
   borda; é o padrão do modal da foto) e 7 páginas prontas a lápis feitas de obras e fotos em **domínio público**
   (procedência em `docs/PROCEDENCIA.md`). As referências do titular (obras assinadas) só inspiraram o estilo.
-- **02/11/2026:** 30 desenhos a lápis do titular (seções Fundo do mar, Animais, Pessoas; em pé, encaixados sem
+- **02/11/2026:** 40 desenhos a lápis do titular (seções Fundo do mar, Animais, Pessoas, Frutas; em pé, encaixados sem
   distorcer) e **Aprenda a desenhar passo a passo** (6 lições: o passo atual acende em azul tracejado na camada de
-  baixo, os anteriores em cinza; no fim o guia some e não entra no PNG). App com ~3,9 MB.
+  baixo, os anteriores em cinza; no fim o guia some e não entra no PNG). App com ~4,5 MB.
 - **Personagem:** o mesmo desenho SVG da Jornada (nenhuma foto da Ester é usada).
 - **Guardado só no navegador:** galeria (`atelie-ester:galeria`, até 30 miniaturas). "Salvar" também baixa o PNG.
 - **Teste antes de commitar:** `node testes/teste_atelie.mjs .scratch/prints` (15 conferências: páginas, lápis realista, desenho em pé, passo a passo, balde,

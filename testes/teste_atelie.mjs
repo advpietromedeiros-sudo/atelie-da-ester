@@ -36,7 +36,7 @@ const linhaH = (y, x0, x1) => Array.from({ length: 30 }, (_, k) => [x0 + (x1 - x
 // T1 · as 15 páginas prontas aparecem com imagem
 await espera(500);
 const t1 = await avalia("({n:document.querySelectorAll('[data-pag]').length,ok:[...document.querySelectorAll('[data-pag] img')].filter(i=>i.complete&&i.naturalWidth>0).length})");
-confere('T1 · 52 páginas prontas (mar, animais, pessoas, clássicos, infantil, Bíblia) com miniatura', t1.n === 52 && t1.ok === 52, JSON.stringify(t1));
+confere('T1 · 62 páginas prontas (mar, animais, pessoas, frutas, clássicos, infantil, Bíblia) com miniatura', t1.n === 62 && t1.ok === 62, JSON.stringify(t1));
 await print('A-1-inicio.png');
 // T2 · abrir "Formas": as linhas vão para a camada de cima
 await avalia("document.querySelector('[data-pag=\"formas\"]').click()"); await espera(800);

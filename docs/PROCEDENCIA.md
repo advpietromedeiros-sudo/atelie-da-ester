@@ -25,7 +25,7 @@ Desenhadas pela sessão, em código, sem material de terceiro.
 
 ## Desenhos a lápis enviados pelo titular (02/11/2026)
 
-30 desenhos (10 do fundo do mar, 10 animais, 10 pessoas) **enviados pelo titular no chat** com a ordem textual
+30 desenhos (10 do fundo do mar, 10 animais, 10 pessoas) e mais 10 frutas (reenviadas às 12h42) **enviados pelo titular no chat** com a ordem textual
 *"SUBA TODAS ESSAS IMAGENS PARA A APLICAÇÃO ATELIE DE ESTER"*. Não trazem assinatura; a origem e a licença são as que o
 titular informar (não registradas por ele até aqui). Convertidos para WebP 720×900 em tons de cinza e embutidos.
 Uso familiar, local. ⚠️ Se algum vier de banco de imagens ou de outro artista, vale a cláusula de uso dele.
