@@ -33,3 +33,6 @@ Uso familiar, local. ⚠️ Se algum vier de banco de imagens ou de outro artist
 ## Lições "Aprenda a desenhar passo a passo" (02/11/2026)
 
 Seis lições (gato, coruja, peixe, borboleta, cachorrinho, pomba da paz) desenhadas pela sessão, em código.
+
+> 02/11/2026, 12h47 — ordem do titular: *"RETIRE DESSE TÓPICO Clássicos da arte"*. Saíram `perola`, `coruja`, `cavalo`,
+> `calopsita` e `gatinho` (e as imagens embutidas deles); ficam no app só `noe` e `pastores`, na seção da Bíblia.
