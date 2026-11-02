@@ -88,7 +88,6 @@ canvas#confete{position:fixed;inset:0;pointer-events:none;z-index:60}
   </div>
   <input type="file" id="arquivo" accept="image/*" hidden>
   <h2>🎓 Aprenda a desenhar passo a passo</h2><div class="paginas" id="pagLicoes"></div>
-  <h2>🏆 Desenho realista passo a passo · nível avançado</h2><p style="margin:-4px 0 10px;color:var(--suave);font-weight:700">Escolha um desenho e faça em 6 etapas, como os desenhistas: formas grandes, contorno, detalhes, sombras escuras, meios-tons e comparação.</p><div class="paginas" id="pagLicoesReal"></div>
   <h2>🌊 Fundo do mar · desenhos a lápis para pintar por cima</h2><div class="paginas" id="pagMar"></div>
   <h2>🦁 Animais · desenhos a lápis</h2><div class="paginas" id="pagAnimais"></div>
   <h2>👩‍🎨 Pessoas · retratos a lápis</h2><div class="paginas" id="pagPessoas"></div>
@@ -289,38 +288,12 @@ const LICOES=[{"id": "l-gato", "titulo": "Gato sentado", "passos": [{"t": "Comec
 function licaoSVG(l,ate){return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900"><rect width="1200" height="900" fill="#fff"/>'+l.passos.slice(0,ate).filter(p=>!p.g||ate<l.passos.length).map(p=>p.d.map(d=>'<path d="'+d+'" fill="none" stroke="#2b2340" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>').join('')).join('')+'</svg>'}
 function licaoMini(l){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(licaoSVG(l,l.passos.length))}
 let licao=null,passo=0;
-function desenharGuia(){if(licao.im)return desenharGuiaImg();cF.clearRect(0,0,W,H);cF.lineCap='round';cF.lineJoin='round';
+function desenharGuia(){cF.clearRect(0,0,W,H);cF.lineCap='round';cF.lineJoin='round';
  licao.passos.forEach((p,i)=>{if(i>passo)return;const agora=i===passo;cF.strokeStyle=agora?'#3b6fd8':'#cfc8dc';cF.lineWidth=agora?9:6;cF.setLineDash(agora?[20,13]:[]);p.d.forEach(d=>cF.stroke(new Path2D(d)))});cF.setLineDash([]);
  const n=licao.passos.length;$('missaoTxt').textContent='Passo '+(passo+1)+' de '+n+': '+licao.passos[passo].t+' Passe a caneta por cima do traço azul.';
  $('bPassoAnt').disabled=passo===0;$('bPassoProx').textContent=passo===n-1?'Concluir ✔':'Próximo passo ▶';cvF.style.opacity=1;$('bGuia').textContent='👁 Esconder guia'}
 function abrirLicao(l){limparTudo();licao=l;passo=0;abrirAtelie({id:l.id,titulo:'Aprenda a desenhar: '+l.titulo,missao:'',licao:true});escolher('caneta');desenharGuia()}
 function passoLicao(d){if(!licao)return;const n=licao.passos.length;if(d>0&&passo===n-1){cF.clearRect(0,0,W,H);$('missaoTxt').textContent='Você desenhou '+licao.titulo.toLowerCase()+' sozinha! 🎉 Agora pinte com o balde 🪣 e o pincel, e depois toque em ⭐ Terminei!';$('bPassoProx').disabled=true;$('bGuia').hidden=true;return}passo=Math.max(0,Math.min(n-1,passo+d));desenharGuia()}
-
-/* ===== desenho realista passo a passo (02/11/2026, titular: "crie também o passo a passo nesse estilo em alto nível"):
-   as etapas saem do PRÓPRIO desenho a lápis, como um desenhista trabalha — formas grandes, contorno, detalhes, sombras
-   escuras, meios-tons e a comparação com o original. Calculadas na hora (nada novo embutido no arquivo). ===== */
-const ETAPAS=[
- {t:'FORMAS GRANDES. Olhe o desenho como se fosse feito de manchas: desenhe só as formas principais, bem de leve, com o LÁPIS. Nada de detalhe ainda!',f:im=>formasGrandes(im)},
- {t:'CONTORNO. Agora passe o contorno de verdade por cima das formas. Corrija o que ficou torto: é para isso que a primeira etapa é leve.',f:im=>contornos(im,W,H,8)},
- {t:'DETALHES. Olhos, escamas, pelos, dobras, gotas... os traços pequenos. Vá devagar, de uma parte para a outra.',f:im=>contornos(im,W,H,30)},
- {t:'SOMBRAS ESCURAS. Preencha as áreas azuis com o lápis apertando mais, em HACHURAS (risquinhos paralelos, todos na mesma direção).',f:im=>tons(im,0,.36)},
- {t:'MEIOS-TONS. As áreas azuis levam um sombreado LEVE, com o lápis deitado. Deixe em branco os pontos de brilho!',f:im=>tons(im,.36,.72)},
- {t:'COMPARE COM O ORIGINAL (aparece clarinho por baixo). Retoque o que faltou. Depois toque em "Esconder guia" e veja o seu desenho!',f:im=>null}];
-function formasGrandes(im){const c=document.createElement('canvas');c.width=Math.max(8,Math.round(im.width/9));c.height=Math.max(8,Math.round(im.height/9));c.getContext('2d').drawImage(im,0,0,c.width,c.height);return contornos(c,W,H,4)}
-function tons(im,a,b){const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d',{willReadFrequently:true});encaixar(x,im,W,H);const d=x.getImageData(0,0,W,H),N=W*H;let g=new Float32Array(N);for(let i=0;i<N;i++)g[i]=(.299*d.data[i*4]+.587*d.data[i*4+1]+.114*d.data[i*4+2])/255;g=desfocar(g,W,H,3);
- const out=x.createImageData(W,H);for(let i=0;i<N;i++)if(g[i]>=a&&g[i]<b)out.data[i*4+3]=255;return out}
-const cacheEt={};
-function etapaDe(l,i){const k=l.id+'|'+i;if(!(k in cacheEt))cacheEt[k]=ETAPAS[i].f(l.im);return cacheEt[k]}
-function tingir(id,rgb,forca){const c=document.createElement('canvas');c.width=W;c.height=H;const d=new ImageData(W,H);for(let i=0;i<d.data.length;i+=4){const a=id.data[i+3];if(!a)continue;d.data[i]=rgb[0];d.data[i+1]=rgb[1];d.data[i+2]=rgb[2];d.data[i+3]=a*forca}c.getContext('2d').putImageData(d,0,0);return c}
-function desenharGuiaImg(){const l=licao;cF.clearRect(0,0,W,H);
- if(passo===ETAPAS.length-1){cF.globalAlpha=.32;encaixarSem(cF,l.im);cF.globalAlpha=1}
- for(let i=0;i<=passo;i++){const id=etapaDe(l,i);if(!id)continue;const agora=i===passo,tom=i>=3;cF.drawImage(tingir(id,agora?[59,111,216]:[200,194,214],agora?(tom?.42:1):(tom?.16:.55)),0,0)}
- $('missaoTxt').textContent='Etapa '+(passo+1)+' de '+ETAPAS.length+': '+ETAPAS[passo].t;
- $('bPassoAnt').disabled=passo===0;$('bPassoProx').textContent=passo===ETAPAS.length-1?'Concluir ✔':'Próxima etapa ▶';cvF.style.opacity=1;$('bGuia').textContent='👁 Esconder guia'}
-function encaixarSem(x,im){const e=Math.min(W/im.width,H/im.height);x.drawImage(im,(W-im.width*e)/2,(H-im.height*e)/2,im.width*e,im.height*e)}
-function abrirLicaoImg(pg){const im=new Image();im.onload=()=>{limparTudo();licao={id:'lr-'+pg.id,titulo:pg.titulo,im,passos:ETAPAS.map(e=>({t:e.t}))};passo=0;
- abrirAtelie({id:'lr-'+pg.id,titulo:'Desenho realista: '+pg.titulo,missao:'',licao:true});escolher('lapis');$('missaoTxt').textContent='Preparando o guia…';setTimeout(desenharGuiaImg,30)};im.src=pg.img}
-const CATS_REAL=['mar','animais','pessoas','frutas'];
 
 /* ===== estado e armazenamento (tudo no navegador) ===== */
 const CHAVE_GAL='atelie-ester:galeria';
@@ -332,11 +305,9 @@ function miniatura(p){return p.img||'data:image/svg+xml;charset=utf-8,'+encodeUR
 function inicio(){avatar($('avaInicio'),'feliz');
  for(const [cat,el] of [['mar','pagMar'],['animais','pagAnimais'],['pessoas','pagPessoas'],['frutas','pagFrutas'],['infantil','pagInfantil'],['biblia','pagBiblia']])$(el).innerHTML=PAGINAS.filter(p=>p.cat===cat).map(p=>`<button class="pagina" data-pag="${p.id}"><img alt="" src="${miniatura(p)}">${p.titulo}<small>${p.missao.split(/[.!]/)[0]}</small></button>`).join('');
  $('pagLicoes').innerHTML=LICOES.map(l=>`<button class="pagina" data-licao="${l.id}"><img alt="" src="${licaoMini(l)}">${l.titulo}<small>${l.nivel} · ${l.passos.length} passos</small></button>`).join('');
- $('pagLicoesReal').innerHTML=PAGINAS.filter(p=>p.img&&CATS_REAL.includes(p.cat)).map(p=>`<button class="pagina" data-licaoimg="${p.id}"><img alt="" src="${p.img}">${p.titulo}<small>Avançado · 6 etapas</small></button>`).join('');
  $('pagTabuada').innerHTML=TABUADA.map(t=>`<button class="pagina" data-tab="${t.id}"><img alt="" src="${tabMini(t)}">${t.titulo.replace('Tabuada secreta: ','')}<small>Contas da tabuada 2 a 9</small></button>`).join('');
  $('galeria').innerHTML=galeria.length?galeria.slice().reverse().map(g=>`<figure><img alt="${g.titulo}" src="${g.img}"><figcaption>${g.titulo}<br>${g.data}</figcaption><button data-apagar="${g.id}">apagar</button></figure>`).join(''):'<p style="color:var(--suave)">Os desenhos salvos aparecem aqui.</p>'}
 document.addEventListener('click',e=>{const p=e.target.closest('[data-pag]');if(p)abrirPagina(PAGINAS.find(x=>x.id===p.dataset.pag));
- const li=e.target.closest('[data-licaoimg]');if(li)abrirLicaoImg(PAGINAS.find(x=>x.id===li.dataset.licaoimg));
  const lc=e.target.closest('[data-licao]');if(lc)abrirLicao(LICOES.find(x=>x.id===lc.dataset.licao));
  const tb=e.target.closest('[data-tab]');if(tb)abrirTabuada(TABUADA.find(x=>x.id===tb.dataset.tab));
  const a=e.target.closest('[data-apagar]');if(a&&confirm('Apagar este desenho da galeria?')){galeria=galeria.filter(g=>g.id!==a.dataset.apagar);salvarGaleria();inicio()}});
@@ -515,7 +486,7 @@ addEventListener('keydown',e=>{if(!$('tAtelie').classList.contains('on')||e.targ
  else if(e.ctrlKey||e.metaKey||e.altKey)return;else if(k==='b')escolher('pincel');else if(k==='e')escolher('borracha');else if(k==='g')escolher('balde');else if(k==='s')$('bSalvar').click();
  else if(k===']')$('tam').value=+$('tam').value+4;else if(k==='[')$('tam').value=+$('tam').value-4});
 
-window.atelieAPI={PAGINAS,abrirPagina,TABUADA,abrirTabuada,LICOES,abrirLicao,passoLicao,abrirLicaoImg,conferir,CORT,TX,TY,TC,atual:()=>atual,balde,carimbar:(x,y)=>carimbar({x,y}),escolher,setCor:c=>{cor=c},galeria:()=>galeria,contornos,lapis,camadas:{cP,cL,cF},usarFotoTeste:img=>{fotoImg=img},ir};
+window.atelieAPI={PAGINAS,abrirPagina,TABUADA,abrirTabuada,LICOES,abrirLicao,passoLicao,conferir,CORT,TX,TY,TC,atual:()=>atual,balde,carimbar:(x,y)=>carimbar({x,y}),escolher,setCor:c=>{cor=c},galeria:()=>galeria,contornos,lapis,camadas:{cP,cL,cF},usarFotoTeste:img=>{fotoImg=img},ir};
 inicio();
 })();
 </script>

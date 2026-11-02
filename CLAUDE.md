@@ -17,14 +17,13 @@
   borda; é o padrão do modal da foto) e 2 quadros bíblicos em **domínio público** (a seção "Clássicos da arte" saiu em 02/11/2026, ordem do titular)
   (procedência em `docs/PROCEDENCIA.md`). As referências do titular (obras assinadas) só inspiraram o estilo.
 - **02/11/2026:** 40 desenhos a lápis do titular (seções Fundo do mar, Animais, Pessoas, Frutas; em pé, encaixados sem
-  distorcer) e **Desenho realista passo a passo** (avançado: os 40 desenhos a lápis em 6 etapas geradas do próprio
-  desenho — formas grandes, contorno, detalhes, sombras, meios-tons, comparação) e **Aprenda a desenhar passo a passo** (18 lições,
+  distorcer) e **Aprenda a desenhar passo a passo** (18 lições,
   inclui pessoas: rosto de menino, perfil, olho realista, corpo em 7 cabeças, mão, família; Fácil/Médio/Desafio — rosto com proporções, cavalo por círculos, leão,
   paisagem em perspectiva, rosa, golfinho e as 6 simples; o passo atual acende em azul tracejado na camada de
   baixo, os anteriores em cinza; no fim o guia some e não entra no PNG). App com ~4 MB.
 - **Personagem:** o mesmo desenho SVG da Jornada (nenhuma foto da Ester é usada).
 - **Guardado só no navegador:** galeria (`atelie-ester:galeria`, até 30 miniaturas). "Salvar" também baixa o PNG.
-- **Teste antes de commitar:** `node testes/teste_atelie.mjs .scratch/prints` (17 conferências: páginas, lápis realista, desenho em pé, passo a passo, balde,
+- **Teste antes de commitar:** `node testes/teste_atelie.mjs .scratch/prints` (16 conferências: páginas, lápis realista, desenho em pé, passo a passo, balde,
   pressão, espelho, desfazer, carimbo, foto → folha, salvar, tabuada secreta, tablet deitado e em pé com toque) e
   `node testes/teste_atelie.mjs --autoteste .scratch/auto` (tem de acusar o balde vazando).
 - **Uso familiar** — não é funcionalidade do portal, salvo ordem em contrário do titular.

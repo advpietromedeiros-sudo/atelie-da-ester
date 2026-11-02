@@ -104,15 +104,6 @@ confere('T16 · todo traço de toda lição desenha alguma coisa (caminho SVG v�
 confere('T15 · passo a passo: 18 lições; passo 1 azul, passo 2 azul + anterior cinza; no fim o guia some', t15a === 18 && p1.az > 50 && p1.ci === 0 && p2.az > 50 && p2.ci > 50 && /Passo 2 de 6/.test(txt) && fim.az === 0 && fim.ci === 0 && bt === true, JSON.stringify({ t15a, p1, p2, fim, bt }));
 await avalia("atelieAPI.ir('tInicio')"); await espera(200); await avalia("document.querySelector('[data-licao=\"l-coruja\"]').click()"); await espera(400); await avalia("atelieAPI.passoLicao(1);atelieAPI.passoLicao(1)");
 await print('A-8-passo-a-passo.png');
-// T17 · desenho realista passo a passo: 6 etapas geradas do próprio desenho, cada uma acende algo novo
-await avalia("atelieAPI.ir('tInicio')"); await espera(200);
-const t17n = await avalia("document.querySelectorAll('[data-licaoimg]').length");
-await avalia("document.querySelector('[data-licaoimg=\"pastor-alemao\"]').click()"); await espera(1500);
-const conta = "(()=>{const d=atelieAPI.camadas.cF.getImageData(0,0,1200,900).data;let az=0,tot=0;for(let i=0;i<d.length;i+=16){if(d[i+3]<20)continue;tot++;if(d[i+2]>170&&d[i]<140)az++}return {az,tot}})()";
-const et = []; et.push(await avalia(conta)); for (let k = 1; k < 6; k++) { await avalia("atelieAPI.passoLicao(1)"); await espera(900); et.push(await avalia(conta)); }
-const txt17 = await avalia("document.getElementById('missaoTxt').textContent");
-await espera(200); await print('A-9-realista-etapas.png');
-confere('T17 · realista passo a passo: 40 desenhos; etapas 1–5 acendem em azul, a 6 mostra o original', t17n === 40 && et.slice(0, 5).every(e => e.az > 200) && et[5].tot > et[4].tot && /Etapa 6 de 6/.test(txt17), JSON.stringify({ t17n, et }));
 // T12 · tabuada secreta: legenda sem ambiguidade; tudo pintado certo → Conferir dá 100%; um quadrado com a cor errada é acusado
 await avalia("atelieAPI.ir('tInicio')"); await espera(200);
 const nTab = await avalia("document.querySelectorAll('[data-tab]').length");
